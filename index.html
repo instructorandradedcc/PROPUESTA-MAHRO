@@ -80,6 +80,25 @@
             border-width: 2px;
             color: #1e40af; /* blue-800 */
         }
+        
+        /* Styles for page drawing feature */
+        #page-drawing-canvas, #page-drawing-temp-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 40;
+        }
+        #page-drawing-temp-canvas.active {
+            pointer-events: auto;
+        }
+        .page-tool-btn.active-tool {
+            background-color: #dbeafe; /* blue-100 */
+            border-color: #3b82f6; /* blue-500 */
+            border-width: 2px;
+        }
 
     </style>
 </head>
@@ -486,6 +505,46 @@
         </section>
 
     </main>
+    
+    <!-- Floating Action Button for Drawing -->
+    <div id="drawing-fab" class="fixed bottom-8 right-8 z-[60]">
+        <button id="toggle-draw-btn" class="w-16 h-16 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition-transform transform hover:scale-110">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z" /></svg>
+        </button>
+    </div>
+
+    <!-- Drawing Toolbar (hidden by default) -->
+    <div id="drawing-toolbar" class="fixed bottom-28 right-8 z-[60] bg-white p-4 rounded-lg shadow-2xl space-y-3 hidden flex-col w-60 border">
+        <div class="flex justify-between items-center">
+             <h4 class="font-bold text-gray-700">Herramientas</h4>
+             <button id="close-toolbar-btn" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-2xl">
+            <button id="page-pen-tool" class="page-tool-btn p-2 rounded-lg" title="Lápiz">✏️</button>
+            <button id="page-highlighter-tool" class="page-tool-btn p-2 rounded-lg" title="Resaltador">✒️</button>
+            <button id="page-eraser-tool" class="page-tool-btn p-2 rounded-lg" title="Borrador">🧼</button>
+        </div>
+        <div class="space-y-2">
+            <div class="flex items-center justify-between">
+                <label for="page-color-picker" class="font-semibold text-sm">Color:</label>
+                <input type="color" id="page-color-picker" value="#ff0000" class="w-10 h-8 p-0 border-0 rounded cursor-pointer">
+            </div>
+            <div>
+                <label for="page-brush-size" class="font-semibold text-sm">Grosor:</label>
+                <input type="range" id="page-brush-size" min="1" max="50" value="5" class="w-full">
+            </div>
+             <div>
+                <label for="page-opacity-slider" class="font-semibold text-sm">Transparencia:</label>
+                <input type="range" id="page-opacity-slider" min="0.1" max="1" step="0.1" value="1" class="w-full">
+            </div>
+        </div>
+         <button id="clear-page-drawings-btn" class="w-full nav-button bg-red-500 text-white font-bold py-2 px-4 rounded-lg text-sm hover:bg-red-600">Limpiar Todo</button>
+    </div>
+
+    <!-- Fullscreen Canvases for Page Drawing -->
+    <canvas id="page-drawing-canvas"></canvas>
+    <canvas id="page-drawing-temp-canvas"></canvas>
+
 
     <footer class="bg-gray-800 text-white mt-12">
         <div class="container mx-auto px-6 py-8 text-center">
@@ -503,96 +562,63 @@
             const prevButtons = document.querySelectorAll('.prev-btn');
             let rolesChartInstance = null;
             
-            // --- START: Tactical Board Logic (New Version) ---
+            // --- START: Tactical Board Logic ---
             const resourceLibrary = document.getElementById('resource-library');
             const canvasContainer = document.getElementById('canvas-container');
             const uploadPrompt = document.getElementById('upload-prompt');
-            
-            // Canvas layers
             const mapCanvas = document.getElementById('map-canvas');
             const gridCanvas = document.getElementById('grid-canvas');
             const objectsCanvas = document.getElementById('objects-canvas');
             const drawingCanvas = document.getElementById('drawing-canvas');
-            
-            // Drawing tools
             const colorPicker = document.getElementById('color-picker');
             const brushSize = document.getElementById('brush-size');
             const penTool = document.getElementById('pen-tool');
             const eraserTool = document.getElementById('eraser-tool');
-            
-            // Action Buttons
             const mapUploadBtn = document.getElementById('map-upload-btn');
             const mapUploadInput = document.getElementById('map-upload-input');
             const clearDrawingsBtn = document.getElementById('clear-drawings');
             const clearBoardBtn = document.getElementById('clear-board');
             
+            let tacticalBoardInitialized = false;
+
             if (canvasContainer) {
                 const mapCtx = mapCanvas.getContext('2d');
                 const gridCtx = gridCanvas.getContext('2d');
                 const objectsCtx = objectsCanvas.getContext('2d');
                 const drawingCtx = drawingCanvas.getContext('2d');
-            
                 let isDrawing = false;
                 let isDragging = false;
-                let draggedItem = null; // From resource library
-                let selectedObject = null; // Placed object on canvas
+                let draggedItem = null; 
+                let selectedObject = null;
                 let offsetX, offsetY;
                 let placedObjects = [];
-            
-                // --- Canvas and Tools State ---
-                const toolState = {
-                    currentTool: 'pen',
-                    color: '#FF0000',
-                    size: 5
-                };
+                const toolState = { currentTool: 'pen', color: '#FF0000', size: 5 };
                 
-                // --- Initialization ---
-                function initializeBoard() {
+                function initializeTacticalBoard() {
+                    if (tacticalBoardInitialized) return;
                     resizeCanvases();
                     drawGrid();
                     setupEventListeners();
-                    window.addEventListener('resize', () => {
-                        resizeCanvases();
-                        redrawAll();
-                    });
+                    window.addEventListener('resize', () => { resizeCanvases(); redrawAll(); });
+                    tacticalBoardInitialized = true;
                 }
-            
                 function resizeCanvases() {
-                    const {
-                        width,
-                        height
-                    } = canvasContainer.getBoundingClientRect();
+                    const { width, height } = canvasContainer.getBoundingClientRect();
                     [mapCanvas, gridCanvas, objectsCanvas, drawingCanvas].forEach(canvas => {
                         canvas.width = width;
                         canvas.height = height;
                     });
                 }
-            
-                function redrawAll() {
-                    // Redraw grid and objects after resize
-                    drawGrid();
-                    drawObjects();
-                    // Note: Drawings on drawing-canvas are pixel data and will be cleared on resize.
-                    // A more advanced implementation would store drawing paths and redraw them.
-                }
-            
+                function redrawAll() { drawGrid(); drawObjects(); }
                 function drawGrid() {
                     const gridSize = 20;
                     gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
                     gridCtx.beginPath();
                     gridCtx.strokeStyle = 'rgba(209, 213, 219, 0.5)';
-                    for (let x = 0; x <= gridCanvas.width; x += gridSize) {
-                        gridCtx.moveTo(x, 0);
-                        gridCtx.lineTo(x, gridCanvas.height);
-                    }
-                    for (let y = 0; y <= gridCanvas.height; y += gridSize) {
-                        gridCtx.moveTo(0, y);
-                        gridCtx.lineTo(gridCanvas.width, y);
-                    }
+                    for (let x = 0; x <= gridCanvas.width; x += gridSize) { gridCtx.moveTo(x, 0); gridCtx.lineTo(x, gridCanvas.height); }
+                    for (let y = 0; y <= gridCanvas.height; y += gridSize) { gridCtx.moveTo(0, y); gridCtx.lineTo(gridCanvas.width, y); }
                     gridCtx.stroke();
                 }
-                
-                // --- Image/Map Handling ---
                 function handleImage(file) {
                     if (file && file.type.startsWith('image/')) {
                         const reader = new FileReader();
@@ -600,23 +626,19 @@
                             const img = new Image();
                             img.onload = () => {
                                 mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
-                                // Draw image scaled to fit container while maintaining aspect ratio
                                 const hRatio = mapCanvas.width / img.width;
                                 const vRatio = mapCanvas.height / img.height;
                                 const ratio = Math.min(hRatio, vRatio);
                                 const centerShift_x = (mapCanvas.width - img.width * ratio) / 2;
                                 const centerShift_y = (mapCanvas.height - img.height * ratio) / 2;
                                 mapCtx.drawImage(img, 0, 0, img.width, img.height, centerShift_x, centerShift_y, img.width * ratio, img.height * ratio);
-                                uploadPrompt.style.display = 'none';
+                                if(uploadPrompt) uploadPrompt.style.display = 'none';
                             };
                             img.src = e.target.result;
                         };
                         reader.readAsDataURL(file);
                     }
                 }
-            
-            
-                // --- Resource & Object Handling ---
                 function drawObjects() {
                     objectsCtx.clearRect(0, 0, objectsCanvas.width, objectsCanvas.height);
                     placedObjects.forEach(obj => {
@@ -626,21 +648,13 @@
                         objectsCtx.fillText(obj.label, obj.x, obj.y);
                     });
                 }
-                
                 function getObjectAtPosition(x, y) {
-                    // Iterate backwards to select the top-most object
                     for (let i = placedObjects.length - 1; i >= 0; i--) {
                         const obj = placedObjects[i];
-                        // Simple bounding box collision detection (30x30 pixels)
-                        if (x > obj.x - 15 && x < obj.x + 15 && y > obj.y - 15 && y < obj.y + 15) {
-                            return obj;
-                        }
+                        if (x > obj.x - 15 && x < obj.x + 15 && y > obj.y - 15 && y < obj.y + 15) return obj;
                     }
                     return null;
                 }
-            
-            
-                // --- Drawing Handling ---
                 function startDrawing(e) {
                     const { offsetX, offsetY } = getCanvasCoords(e);
                     isDrawing = true;
@@ -648,21 +662,13 @@
                     drawingCtx.moveTo(offsetX, offsetY);
                     updateBrush();
                 }
-            
                 function draw(e) {
                     if (!isDrawing) return;
                     const { offsetX, offsetY } = getCanvasCoords(e);
                     drawingCtx.lineTo(offsetX, offsetY);
                     drawingCtx.stroke();
                 }
-                
-                function stopDrawing() {
-                    if (isDrawing) {
-                        drawingCtx.closePath();
-                        isDrawing = false;
-                    }
-                }
-                
+                function stopDrawing() { if (isDrawing) { drawingCtx.closePath(); isDrawing = false; } }
                 function updateBrush() {
                     if(toolState.currentTool === 'pen'){
                          drawingCtx.globalCompositeOperation = 'source-over';
@@ -675,64 +681,40 @@
                         drawingCtx.lineWidth = toolState.size;
                     }
                 }
-                
-                // --- Event Handlers ---
                 function setupEventListeners() {
-                    // Resource Library Drag & Drop
                     resourceLibrary.addEventListener('dragstart', (e) => {
                         if (e.target.classList.contains('resource-item')) {
-                            draggedItem = {
-                                type: e.target.dataset.type,
-                                label: e.target.dataset.label
-                            };
+                            draggedItem = { type: e.target.dataset.type, label: e.target.dataset.label };
                         }
                     });
-            
-                    // Canvas drop from library or file system
                     canvasContainer.addEventListener('dragover', e => e.preventDefault());
                     canvasContainer.addEventListener('drop', (e) => {
                         e.preventDefault();
                         if (draggedItem) {
                             const { offsetX, offsetY } = getCanvasCoords(e);
-                            placedObjects.push({
-                                id: Date.now(),
-                                ...draggedItem,
-                                x: offsetX,
-                                y: offsetY
-                            });
+                            placedObjects.push({ id: Date.now(), ...draggedItem, x: offsetX, y: offsetY });
                             drawObjects();
                             draggedItem = null;
                         }
-                        if (e.dataTransfer.files.length > 0) {
-                             handleImage(e.dataTransfer.files[0]);
-                        }
+                        if (e.dataTransfer.files.length > 0) handleImage(e.dataTransfer.files[0]);
                     });
-            
-                    // Mouse events for drawing AND moving objects
                     drawingCanvas.addEventListener('mousedown', handleMouseDown);
                     drawingCanvas.addEventListener('mousemove', handleMouseMove);
                     drawingCanvas.addEventListener('mouseup', handleMouseUp);
-                    drawingCanvas.addEventListener('mouseout', handleMouseUp); // Stop if mouse leaves canvas
-                    
-                    // Touch events
-                    drawingCanvas.addEventListener('touchstart', handleMouseDown);
-                    drawingCanvas.addEventListener('touchmove', handleMouseMove);
+                    drawingCanvas.addEventListener('mouseout', handleMouseUp);
+                    drawingCanvas.addEventListener('touchstart', handleMouseDown, { passive: false });
+                    drawingCanvas.addEventListener('touchmove', handleMouseMove, { passive: false });
                     drawingCanvas.addEventListener('touchend', handleMouseUp);
-            
-                    // Map/Image loading
                     mapUploadBtn.addEventListener('click', () => mapUploadInput.click());
                     mapUploadInput.addEventListener('change', (e) => handleImage(e.target.files[0]));
                     document.addEventListener('paste', (e) => {
-                         const items = e.clipboardData.items;
-                         for (const item of items) {
-                             if (item.type.indexOf('image') !== -1) {
-                                 handleImage(item.getAsFile());
-                                 break;
+                        if(document.querySelector('#tablero').classList.contains('active')){
+                             const items = e.clipboardData.items;
+                             for (const item of items) {
+                                 if (item.type.indexOf('image') !== -1) { handleImage(item.getAsFile()); break; }
                              }
-                         }
+                        }
                     });
-                    
-                    // Tool selection
                     colorPicker.addEventListener('input', (e) => toolState.color = e.target.value);
                     brushSize.addEventListener('input', (e) => toolState.size = e.target.value);
                     penTool.addEventListener('click', () => {
@@ -747,35 +729,22 @@
                         penTool.classList.remove('active-tool');
                         drawingCanvas.style.cursor = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' style='color:black'><path fill='white' stroke='currentColor' stroke-width='2' d='M6 6L18 18M18 6L6 18' /></svg>") 12 12, auto`;
                     });
-                    
-                    // Clear buttons
-                    clearDrawingsBtn.addEventListener('click', () => {
-                         drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-                    });
-                    
+                    clearDrawingsBtn.addEventListener('click', () => drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height));
                     clearBoardBtn.addEventListener('click', () => {
                         mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
                         drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
                         placedObjects = [];
                         drawObjects();
-                        uploadPrompt.style.display = 'flex';
+                        if(uploadPrompt) uploadPrompt.style.display = 'flex';
                     });
                 }
-            
                 function handleMouseDown(e) {
                     e.preventDefault();
                     const { offsetX: mouseX, offsetY: mouseY } = getCanvasCoords(e);
                     selectedObject = getObjectAtPosition(mouseX, mouseY);
-            
-                    if (selectedObject) {
-                        isDragging = true;
-                        offsetX = mouseX - selectedObject.x;
-                        offsetY = mouseY - selectedObject.y;
-                    } else {
-                        startDrawing(e);
-                    }
+                    if (selectedObject) { isDragging = true; offsetX = mouseX - selectedObject.x; offsetY = mouseY - selectedObject.y; } 
+                    else { startDrawing(e); }
                 }
-                
                 function handleMouseMove(e) {
                     e.preventDefault();
                     if (isDragging && selectedObject) {
@@ -783,38 +752,182 @@
                         selectedObject.x = mouseX - offsetX;
                         selectedObject.y = mouseY - offsetY;
                         drawObjects();
-                    } else if (isDrawing) {
-                        draw(e);
-                    }
+                    } else if (isDrawing) { draw(e); }
                 }
-            
-                function handleMouseUp(e) {
-                    e.preventDefault();
-                    if(isDragging) {
-                         isDragging = false;
-                         selectedObject = null;
-                    }
-                    if(isDrawing){
-                        stopDrawing();
-                    }
-                }
-            
-                // Utility to get correct canvas coordinates for mouse and touch
+                function handleMouseUp(e) { e.preventDefault(); if(isDragging) { isDragging = false; selectedObject = null; } if(isDrawing){ stopDrawing(); } }
                 function getCanvasCoords(e) {
                     const rect = drawingCanvas.getBoundingClientRect();
                     const touch = e.touches ? e.touches[0] : null;
-                    const clientX = touch ? touch.clientX : e.clientX;
-                    const clientY = touch ? touch.clientY : e.clientY;
                     return {
-                        offsetX: clientX - rect.left,
-                        offsetY: clientY - rect.top
+                        offsetX: (touch ? touch.clientX : e.clientX) - rect.left,
+                        offsetY: (touch ? touch.clientY : e.clientY) - rect.top
                     };
                 }
-            
-                // --- Start everything ---
-                initializeBoard();
             }
             // --- END: Tactical Board Logic ---
+
+
+            // --- START: Full Page Drawing Logic ---
+            const toggleDrawBtn = document.getElementById('toggle-draw-btn');
+            const drawingToolbar = document.getElementById('drawing-toolbar');
+            const closeToolbarBtn = document.getElementById('close-toolbar-btn');
+            const pageDrawingCanvas = document.getElementById('page-drawing-canvas');
+            const pageDrawingTempCanvas = document.getElementById('page-drawing-temp-canvas');
+
+            if (pageDrawingCanvas && pageDrawingTempCanvas) {
+                const pageCtx = pageDrawingCanvas.getContext('2d');
+                const tempCtx = pageDrawingTempCanvas.getContext('2d');
+
+                const pagePenTool = document.getElementById('page-pen-tool');
+                const pageHighlighterTool = document.getElementById('page-highlighter-tool');
+                const pageEraserTool = document.getElementById('page-eraser-tool');
+                const pageColorPicker = document.getElementById('page-color-picker');
+                const pageBrushSize = document.getElementById('page-brush-size');
+                const pageOpacitySlider = document.getElementById('page-opacity-slider');
+                const clearPageDrawingsBtn = document.getElementById('clear-page-drawings-btn');
+
+                let isPageDrawing = false;
+                let isDrawingActive = false;
+                let currentPath = [];
+                
+                const pageToolState = { currentTool: 'pen', color: '#ff0000', size: 5, opacity: 1 };
+
+                function hexToRgba(hex, alpha = 1) {
+                    const r = parseInt(hex.slice(1, 3), 16);
+                    const g = parseInt(hex.slice(3, 5), 16);
+                    const b = parseInt(hex.slice(5, 7), 16);
+                    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                }
+
+                function activateDrawingMode(activate) {
+                    isDrawingActive = activate;
+                    if (activate) {
+                        pageDrawingTempCanvas.classList.add('active');
+                        drawingToolbar.classList.remove('hidden');
+                        drawingToolbar.classList.add('flex');
+                        resizePageCanvases();
+                        updatePageBrush(tempCtx);
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        pageDrawingTempCanvas.classList.remove('active');
+                        drawingToolbar.classList.add('hidden');
+                        drawingToolbar.classList.remove('flex');
+                        isPageDrawing = false;
+                        document.body.style.overflow = '';
+                    }
+                }
+
+                function resizePageCanvases() {
+                    [pageDrawingCanvas, pageDrawingTempCanvas].forEach(canvas => {
+                        canvas.width = window.innerWidth;
+                        canvas.height = window.innerHeight;
+                    });
+                }
+
+                function updatePageBrush(ctx) {
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.lineWidth = pageToolState.size;
+
+                    switch(pageToolState.currentTool) {
+                        case 'pen':
+                            ctx.globalCompositeOperation = 'source-over';
+                            ctx.strokeStyle = hexToRgba(pageToolState.color, pageToolState.opacity);
+                            break;
+                        case 'highlighter':
+                             ctx.globalCompositeOperation = 'multiply';
+                             ctx.strokeStyle = hexToRgba(pageToolState.color, pageToolState.opacity);
+                             break;
+                        case 'eraser':
+                            ctx.globalCompositeOperation = 'destination-out';
+                            break;
+                    }
+                }
+                
+                function getPageCanvasCoords(e) {
+                    const touch = e.touches ? e.touches[0] : null;
+                    return {
+                        x: touch ? touch.clientX : e.clientX,
+                        y: touch ? touch.clientY : e.clientY
+                    };
+                }
+
+                function startPageDrawing(e) {
+                    if (!isDrawingActive) return;
+                    isPageDrawing = true;
+                    currentPath = [getPageCanvasCoords(e)];
+                }
+
+                function pageDraw(e) {
+                    if (!isPageDrawing) return;
+                    e.preventDefault(); 
+                    currentPath.push(getPageCanvasCoords(e));
+                    
+                    tempCtx.clearRect(0, 0, pageDrawingTempCanvas.width, pageDrawingTempCanvas.height);
+                    tempCtx.beginPath();
+                    tempCtx.moveTo(currentPath[0].x, currentPath[0].y);
+                    for (let i = 1; i < currentPath.length; i++) {
+                        tempCtx.lineTo(currentPath[i].x, currentPath[i].y);
+                    }
+                    tempCtx.stroke();
+                }
+
+                function stopPageDrawing() {
+                    if (!isPageDrawing) return;
+                    isPageDrawing = false;
+                    pageCtx.drawImage(pageDrawingTempCanvas, 0, 0);
+                    tempCtx.clearRect(0, 0, pageDrawingTempCanvas.width, pageDrawingTempCanvas.height);
+                    currentPath = [];
+                }
+                
+                toggleDrawBtn.addEventListener('click', () => activateDrawingMode(!isDrawingActive));
+                closeToolbarBtn.addEventListener('click', () => activateDrawingMode(false));
+                
+                pageColorPicker.addEventListener('input', e => { pageToolState.color = e.target.value; updatePageBrush(tempCtx); });
+                pageBrushSize.addEventListener('input', e => { pageToolState.size = e.target.value; updatePageBrush(tempCtx); });
+                pageOpacitySlider.addEventListener('input', e => { pageToolState.opacity = e.target.value; updatePageBrush(tempCtx); });
+
+                clearPageDrawingsBtn.addEventListener('click', () => pageCtx.clearRect(0, 0, pageDrawingCanvas.width, pageDrawingCanvas.height));
+                
+                const toolButtons = [pagePenTool, pageHighlighterTool, pageEraserTool];
+                pagePenTool.addEventListener('click', () => {
+                     pageToolState.currentTool = 'pen';
+                     toolButtons.forEach(btn => btn.classList.remove('active-tool'));
+                     pagePenTool.classList.add('active-tool');
+                     updatePageBrush(tempCtx);
+                });
+                 pageHighlighterTool.addEventListener('click', () => {
+                     pageToolState.currentTool = 'highlighter';
+                     toolButtons.forEach(btn => btn.classList.remove('active-tool'));
+                     pageHighlighterTool.classList.add('active-tool');
+                     updatePageBrush(tempCtx);
+                });
+                pageEraserTool.addEventListener('click', () => {
+                     pageToolState.currentTool = 'eraser';
+                     toolButtons.forEach(btn => btn.classList.remove('active-tool'));
+                     pageEraserTool.classList.add('active-tool');
+                     updatePageBrush(tempCtx);
+                });
+                
+                pagePenTool.classList.add('active-tool');
+
+                pageDrawingTempCanvas.addEventListener('mousedown', startPageDrawing);
+                pageDrawingTempCanvas.addEventListener('mousemove', pageDraw);
+                pageDrawingTempCanvas.addEventListener('mouseup', stopPageDrawing);
+                pageDrawingTempCanvas.addEventListener('mouseout', stopPageDrawing);
+                pageDrawingTempCanvas.addEventListener('touchstart', startPageDrawing, { passive: false });
+                pageDrawingTempCanvas.addEventListener('touchmove', pageDraw, { passive: false });
+                pageDrawingTempCanvas.addEventListener('touchend', stopPageDrawing);
+                
+                window.addEventListener('resize', () => {
+                    if (isDrawingActive) { 
+                        // To preserve drawings on resize, you'd need to save/restore the canvas data.
+                        // For simplicity, we can just resize, which will clear the canvas.
+                        resizePageCanvases(); 
+                    }
+                });
+            }
+            // --- END: Full Page Drawing Logic ---
 
 
             // Roles Analysis Logic
@@ -915,10 +1028,13 @@
                 if (mobileNav) mobileNav.value = pageId;
                 window.scrollTo(0, 0);
 
-                // Initialize tactical board only when its page is shown
-                if (pageId === 'tablero' && canvasContainer && !canvasContainer.classList.contains('initialized')) {
-                    initializeBoard();
-                    canvasContainer.classList.add('initialized');
+                if (pageDrawingCanvas) {
+                    const pageCtx = pageDrawingCanvas.getContext('2d');
+                    pageCtx.clearRect(0, 0, pageDrawingCanvas.width, pageDrawingCanvas.height);
+                }
+
+                if (pageId === 'tablero') {
+                    initializeTacticalBoard();
                 }
             }
 
@@ -950,6 +1066,8 @@
     </script>
 </body>
 </html>
+
+
 
 
 
