@@ -64,11 +64,6 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-        #tactical-board {
-            background-image: linear-gradient(rgba(209, 213, 219, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(209, 213, 219, 0.5) 1px, transparent 1px);
-            background-size: 20px 20px;
-            touch-action: none;
-        }
         .resource-item {
             cursor: grab;
             user-select: none;
@@ -76,11 +71,16 @@
         .resource-item:active {
             cursor: grabbing;
         }
-        .placed-resource {
-            position: absolute;
-            cursor: move;
-            user-select: none;
+        #canvas-container {
+            touch-action: none; /* Prevents default touch actions like scrolling on the canvas */
         }
+        .tool-btn.active-tool {
+            background-color: #dbeafe; /* blue-100 */
+            border-color: #3b82f6; /* blue-500 */
+            border-width: 2px;
+            color: #1e40af; /* blue-800 */
+        }
+
     </style>
 </head>
 <body class="antialiased">
@@ -350,18 +350,18 @@
         <section id="tablero" class="page">
              <div class="text-center mb-10">
                 <h2 class="text-3xl font-bold text-blue-800">Tablero Táctico Interactivo</h2>
-                <p class="mt-2 text-lg text-gray-600 max-w-3xl mx-auto">Herramienta de simulación para la planificación y el despliegue de recursos en un incidente.</p>
+                <p class="mt-2 text-lg text-gray-600 max-w-3xl mx-auto">Cargue un mapa, posicione recursos y dibuje su estrategia.</p>
             </div>
 
             <div class="grid lg:grid-cols-4 gap-6">
-                <!-- Columna de Recursos -->
-                <div class="lg:col-span-1 section-card">
+                <!-- Columna de Recursos y Herramientas -->
+                <div class="lg:col-span-1 section-card flex flex-col">
                     <h3 class="text-lg font-semibold text-blue-900 mb-4">Biblioteca de Recursos</h3>
                     <div class="space-y-4" id="resource-library">
-                        <div class="resource-item flex items-center bg-gray-100 p-2 rounded-lg border" draggable="true" data-type="PC" data-label="PC">
+                        <div class="resource-item flex items-center bg-gray-100 p-2 rounded-lg border" draggable="true" data-type="PC" data-label="★">
                             <span class="text-2xl mr-3">★</span> <span class="font-semibold">Puesto de Comando</span>
                         </div>
-                         <div class="resource-item flex items-center bg-gray-100 p-2 rounded-lg border" draggable="true" data-type="Base" data-label="B">
+                         <div class="resource-item flex items-center bg-gray-100 p-2 rounded-lg border" draggable="true" data-type="Base" data-label="⚑">
                             <span class="text-2xl mr-3">⚑</span> <span class="font-semibold">Base</span>
                         </div>
                         <div class="resource-item flex items-center bg-gray-100 p-2 rounded-lg border" draggable="true" data-type="Ambulancia" data-label="🚑">
@@ -380,7 +380,31 @@
                             <span class="text-2xl mr-3">📍</span> <span class="font-semibold">Punto de Encuentro</span>
                         </div>
                     </div>
-                    <button id="clear-board" class="w-full mt-6 nav-button bg-red-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-700">Limpiar Tablero</button>
+
+                    <hr class="my-6">
+
+                    <h3 class="text-lg font-semibold text-blue-900 mb-4">Herramientas de Dibujo</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <label for="color-picker" class="font-semibold">Color:</label>
+                            <input type="color" id="color-picker" value="#ff0000" class="w-12 h-8 p-0 border-0 rounded cursor-pointer">
+                        </div>
+                         <div class="flex items-center justify-between">
+                            <label for="brush-size" class="font-semibold">Grosor:</label>
+                            <input type="range" id="brush-size" min="1" max="50" value="5" class="w-2/3">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="pen-tool" class="tool-btn active-tool p-2 rounded-lg">Lápiz</button>
+                            <button id="eraser-tool" class="tool-btn p-2 rounded-lg">Borrador</button>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto pt-6">
+                        <input type="file" id="map-upload-input" class="hidden" accept="image/*">
+                        <button id="map-upload-btn" class="w-full mb-2 nav-button bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700">Cargar Mapa</button>
+                        <button id="clear-drawings" class="w-full mb-2 nav-button bg-yellow-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-yellow-600">Borrar Dibujos</button>
+                        <button id="clear-board" class="w-full nav-button bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700">Limpiar Todo</button>
+                    </div>
                 </div>
 
                 <!-- Tablero y Formulario -->
@@ -396,8 +420,17 @@
 4. Evaluar daños estructurales y a inventario.</textarea></div>
                         </div>
                     </div>
-                    <div id="tactical-board" class="section-card h-[500px] relative overflow-hidden bg-gray-50">
-                        <!-- Placed resources will appear here -->
+                    <!-- Canvas container -->
+                    <div id="canvas-container" class="relative w-full h-[550px] bg-gray-200 rounded-lg shadow-inner overflow-hidden border">
+                        <canvas id="map-canvas" class="absolute top-0 left-0"></canvas>
+                        <canvas id="grid-canvas" class="absolute top-0 left-0"></canvas>
+                        <canvas id="objects-canvas" class="absolute top-0 left-0"></canvas>
+                        <canvas id="drawing-canvas" class="absolute top-0 left-0 cursor-crosshair"></canvas>
+                        <div id="upload-prompt" class="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-gray-200/80 text-gray-600 p-4 text-center pointer-events-none">
+                            <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <h3 class="text-xl font-semibold">Cargue una imagen de mapa</h3>
+                            <p>Use el botón "Cargar Mapa", pegue una imagen (Ctrl+V) o arrastre y suelte un archivo aquí.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -470,99 +503,318 @@
             const prevButtons = document.querySelectorAll('.prev-btn');
             let rolesChartInstance = null;
             
-            // Tactical Board Logic
+            // --- START: Tactical Board Logic (New Version) ---
             const resourceLibrary = document.getElementById('resource-library');
-            const tacticalBoard = document.getElementById('tactical-board');
+            const canvasContainer = document.getElementById('canvas-container');
+            const uploadPrompt = document.getElementById('upload-prompt');
+            
+            // Canvas layers
+            const mapCanvas = document.getElementById('map-canvas');
+            const gridCanvas = document.getElementById('grid-canvas');
+            const objectsCanvas = document.getElementById('objects-canvas');
+            const drawingCanvas = document.getElementById('drawing-canvas');
+            
+            // Drawing tools
+            const colorPicker = document.getElementById('color-picker');
+            const brushSize = document.getElementById('brush-size');
+            const penTool = document.getElementById('pen-tool');
+            const eraserTool = document.getElementById('eraser-tool');
+            
+            // Action Buttons
+            const mapUploadBtn = document.getElementById('map-upload-btn');
+            const mapUploadInput = document.getElementById('map-upload-input');
+            const clearDrawingsBtn = document.getElementById('clear-drawings');
             const clearBoardBtn = document.getElementById('clear-board');
-            let draggedItem = null;
-
-            if (resourceLibrary && tacticalBoard) {
-                resourceLibrary.addEventListener('dragstart', (e) => {
-                    if (e.target.classList.contains('resource-item')) {
-                        draggedItem = e.target;
-                        setTimeout(() => {
-                            e.target.style.display = 'none';
-                        }, 0);
-                    }
-                });
-
-                resourceLibrary.addEventListener('dragend', (e) => {
-                    if (draggedItem) {
-                        setTimeout(() => {
-                            draggedItem.style.display = 'flex';
-                            draggedItem = null;
-                        }, 0);
-                    }
-                });
-
-                tacticalBoard.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                });
-
-                tacticalBoard.addEventListener('dragenter', (e) => {
-                    e.preventDefault();
-                    tacticalBoard.classList.add('bg-gray-100');
-                });
-
-                tacticalBoard.addEventListener('dragleave', () => {
-                    tacticalBoard.classList.remove('bg-gray-100');
-                });
-
-                tacticalBoard.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    tacticalBoard.classList.remove('bg-gray-100');
-                    if (draggedItem) {
-                        const boardRect = tacticalBoard.getBoundingClientRect();
-                        const x = e.clientX - boardRect.left;
-                        const y = e.clientY - boardRect.top;
-
-                        const newResource = document.createElement('div');
-                        newResource.className = 'placed-resource text-3xl';
-                        newResource.textContent = draggedItem.dataset.label;
-                        newResource.style.left = `${x - 20}px`;
-                        newResource.style.top = `${y - 20}px`;
-                        makeDraggable(newResource);
-                        tacticalBoard.appendChild(newResource);
-                    }
-                });
-
-                clearBoardBtn.addEventListener('click', () => {
-                    tacticalBoard.innerHTML = '';
-                });
-
-                function makeDraggable(element) {
-                    let offsetX, offsetY, isDragging = false;
-                    
-                    element.addEventListener('mousedown', (e) => {
-                        isDragging = true;
-                        offsetX = e.clientX - element.offsetLeft;
-                        offsetY = e.clientY - element.offsetTop;
-                        element.style.cursor = 'grabbing';
-                    });
-
-                    document.addEventListener('mousemove', (e) => {
-                        if (isDragging) {
-                            const boardRect = tacticalBoard.getBoundingClientRect();
-                            let newX = e.clientX - offsetX;
-                            let newY = e.clientY - offsetY;
-
-                            // Constrain to board boundaries
-                            if (newX < 0) newX = 0;
-                            if (newY < 0) newY = 0;
-                            if (newX + element.clientWidth > boardRect.width) newX = boardRect.width - element.clientWidth;
-                            if (newY + element.clientHeight > boardRect.height) newY = boardRect.height - element.clientHeight;
-                            
-                            element.style.left = `${newX}px`;
-                            element.style.top = `${newY}px`;
-                        }
-                    });
-
-                    document.addEventListener('mouseup', () => {
-                        isDragging = false;
-                        element.style.cursor = 'move';
+            
+            if (canvasContainer) {
+                const mapCtx = mapCanvas.getContext('2d');
+                const gridCtx = gridCanvas.getContext('2d');
+                const objectsCtx = objectsCanvas.getContext('2d');
+                const drawingCtx = drawingCanvas.getContext('2d');
+            
+                let isDrawing = false;
+                let isDragging = false;
+                let draggedItem = null; // From resource library
+                let selectedObject = null; // Placed object on canvas
+                let offsetX, offsetY;
+                let placedObjects = [];
+            
+                // --- Canvas and Tools State ---
+                const toolState = {
+                    currentTool: 'pen',
+                    color: '#FF0000',
+                    size: 5
+                };
+                
+                // --- Initialization ---
+                function initializeBoard() {
+                    resizeCanvases();
+                    drawGrid();
+                    setupEventListeners();
+                    window.addEventListener('resize', () => {
+                        resizeCanvases();
+                        redrawAll();
                     });
                 }
+            
+                function resizeCanvases() {
+                    const {
+                        width,
+                        height
+                    } = canvasContainer.getBoundingClientRect();
+                    [mapCanvas, gridCanvas, objectsCanvas, drawingCanvas].forEach(canvas => {
+                        canvas.width = width;
+                        canvas.height = height;
+                    });
+                }
+            
+                function redrawAll() {
+                    // Redraw grid and objects after resize
+                    drawGrid();
+                    drawObjects();
+                    // Note: Drawings on drawing-canvas are pixel data and will be cleared on resize.
+                    // A more advanced implementation would store drawing paths and redraw them.
+                }
+            
+                function drawGrid() {
+                    const gridSize = 20;
+                    gridCtx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
+                    gridCtx.beginPath();
+                    gridCtx.strokeStyle = 'rgba(209, 213, 219, 0.5)';
+                    for (let x = 0; x <= gridCanvas.width; x += gridSize) {
+                        gridCtx.moveTo(x, 0);
+                        gridCtx.lineTo(x, gridCanvas.height);
+                    }
+                    for (let y = 0; y <= gridCanvas.height; y += gridSize) {
+                        gridCtx.moveTo(0, y);
+                        gridCtx.lineTo(gridCanvas.width, y);
+                    }
+                    gridCtx.stroke();
+                }
+                
+                // --- Image/Map Handling ---
+                function handleImage(file) {
+                    if (file && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const img = new Image();
+                            img.onload = () => {
+                                mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+                                // Draw image scaled to fit container while maintaining aspect ratio
+                                const hRatio = mapCanvas.width / img.width;
+                                const vRatio = mapCanvas.height / img.height;
+                                const ratio = Math.min(hRatio, vRatio);
+                                const centerShift_x = (mapCanvas.width - img.width * ratio) / 2;
+                                const centerShift_y = (mapCanvas.height - img.height * ratio) / 2;
+                                mapCtx.drawImage(img, 0, 0, img.width, img.height, centerShift_x, centerShift_y, img.width * ratio, img.height * ratio);
+                                uploadPrompt.style.display = 'none';
+                            };
+                            img.src = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            
+            
+                // --- Resource & Object Handling ---
+                function drawObjects() {
+                    objectsCtx.clearRect(0, 0, objectsCanvas.width, objectsCanvas.height);
+                    placedObjects.forEach(obj => {
+                        objectsCtx.font = '24px sans-serif';
+                        objectsCtx.textAlign = 'center';
+                        objectsCtx.textBaseline = 'middle';
+                        objectsCtx.fillText(obj.label, obj.x, obj.y);
+                    });
+                }
+                
+                function getObjectAtPosition(x, y) {
+                    // Iterate backwards to select the top-most object
+                    for (let i = placedObjects.length - 1; i >= 0; i--) {
+                        const obj = placedObjects[i];
+                        // Simple bounding box collision detection (30x30 pixels)
+                        if (x > obj.x - 15 && x < obj.x + 15 && y > obj.y - 15 && y < obj.y + 15) {
+                            return obj;
+                        }
+                    }
+                    return null;
+                }
+            
+            
+                // --- Drawing Handling ---
+                function startDrawing(e) {
+                    const { offsetX, offsetY } = getCanvasCoords(e);
+                    isDrawing = true;
+                    drawingCtx.beginPath();
+                    drawingCtx.moveTo(offsetX, offsetY);
+                    updateBrush();
+                }
+            
+                function draw(e) {
+                    if (!isDrawing) return;
+                    const { offsetX, offsetY } = getCanvasCoords(e);
+                    drawingCtx.lineTo(offsetX, offsetY);
+                    drawingCtx.stroke();
+                }
+                
+                function stopDrawing() {
+                    if (isDrawing) {
+                        drawingCtx.closePath();
+                        isDrawing = false;
+                    }
+                }
+                
+                function updateBrush() {
+                    if(toolState.currentTool === 'pen'){
+                         drawingCtx.globalCompositeOperation = 'source-over';
+                         drawingCtx.strokeStyle = toolState.color;
+                         drawingCtx.lineWidth = toolState.size;
+                         drawingCtx.lineCap = 'round';
+                         drawingCtx.lineJoin = 'round';
+                    } else if (toolState.currentTool === 'eraser'){
+                        drawingCtx.globalCompositeOperation = 'destination-out';
+                        drawingCtx.lineWidth = toolState.size;
+                    }
+                }
+                
+                // --- Event Handlers ---
+                function setupEventListeners() {
+                    // Resource Library Drag & Drop
+                    resourceLibrary.addEventListener('dragstart', (e) => {
+                        if (e.target.classList.contains('resource-item')) {
+                            draggedItem = {
+                                type: e.target.dataset.type,
+                                label: e.target.dataset.label
+                            };
+                        }
+                    });
+            
+                    // Canvas drop from library or file system
+                    canvasContainer.addEventListener('dragover', e => e.preventDefault());
+                    canvasContainer.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        if (draggedItem) {
+                            const { offsetX, offsetY } = getCanvasCoords(e);
+                            placedObjects.push({
+                                id: Date.now(),
+                                ...draggedItem,
+                                x: offsetX,
+                                y: offsetY
+                            });
+                            drawObjects();
+                            draggedItem = null;
+                        }
+                        if (e.dataTransfer.files.length > 0) {
+                             handleImage(e.dataTransfer.files[0]);
+                        }
+                    });
+            
+                    // Mouse events for drawing AND moving objects
+                    drawingCanvas.addEventListener('mousedown', handleMouseDown);
+                    drawingCanvas.addEventListener('mousemove', handleMouseMove);
+                    drawingCanvas.addEventListener('mouseup', handleMouseUp);
+                    drawingCanvas.addEventListener('mouseout', handleMouseUp); // Stop if mouse leaves canvas
+                    
+                    // Touch events
+                    drawingCanvas.addEventListener('touchstart', handleMouseDown);
+                    drawingCanvas.addEventListener('touchmove', handleMouseMove);
+                    drawingCanvas.addEventListener('touchend', handleMouseUp);
+            
+                    // Map/Image loading
+                    mapUploadBtn.addEventListener('click', () => mapUploadInput.click());
+                    mapUploadInput.addEventListener('change', (e) => handleImage(e.target.files[0]));
+                    document.addEventListener('paste', (e) => {
+                         const items = e.clipboardData.items;
+                         for (const item of items) {
+                             if (item.type.indexOf('image') !== -1) {
+                                 handleImage(item.getAsFile());
+                                 break;
+                             }
+                         }
+                    });
+                    
+                    // Tool selection
+                    colorPicker.addEventListener('input', (e) => toolState.color = e.target.value);
+                    brushSize.addEventListener('input', (e) => toolState.size = e.target.value);
+                    penTool.addEventListener('click', () => {
+                        toolState.currentTool = 'pen';
+                        penTool.classList.add('active-tool');
+                        eraserTool.classList.remove('active-tool');
+                        drawingCanvas.style.cursor = 'crosshair';
+                    });
+                    eraserTool.addEventListener('click', () => {
+                        toolState.currentTool = 'eraser';
+                        eraserTool.classList.add('active-tool');
+                        penTool.classList.remove('active-tool');
+                        drawingCanvas.style.cursor = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' style='color:black'><path fill='white' stroke='currentColor' stroke-width='2' d='M6 6L18 18M18 6L6 18' /></svg>") 12 12, auto`;
+                    });
+                    
+                    // Clear buttons
+                    clearDrawingsBtn.addEventListener('click', () => {
+                         drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                    });
+                    
+                    clearBoardBtn.addEventListener('click', () => {
+                        mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+                        drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                        placedObjects = [];
+                        drawObjects();
+                        uploadPrompt.style.display = 'flex';
+                    });
+                }
+            
+                function handleMouseDown(e) {
+                    e.preventDefault();
+                    const { offsetX: mouseX, offsetY: mouseY } = getCanvasCoords(e);
+                    selectedObject = getObjectAtPosition(mouseX, mouseY);
+            
+                    if (selectedObject) {
+                        isDragging = true;
+                        offsetX = mouseX - selectedObject.x;
+                        offsetY = mouseY - selectedObject.y;
+                    } else {
+                        startDrawing(e);
+                    }
+                }
+                
+                function handleMouseMove(e) {
+                    e.preventDefault();
+                    if (isDragging && selectedObject) {
+                        const { offsetX: mouseX, offsetY: mouseY } = getCanvasCoords(e);
+                        selectedObject.x = mouseX - offsetX;
+                        selectedObject.y = mouseY - offsetY;
+                        drawObjects();
+                    } else if (isDrawing) {
+                        draw(e);
+                    }
+                }
+            
+                function handleMouseUp(e) {
+                    e.preventDefault();
+                    if(isDragging) {
+                         isDragging = false;
+                         selectedObject = null;
+                    }
+                    if(isDrawing){
+                        stopDrawing();
+                    }
+                }
+            
+                // Utility to get correct canvas coordinates for mouse and touch
+                function getCanvasCoords(e) {
+                    const rect = drawingCanvas.getBoundingClientRect();
+                    const touch = e.touches ? e.touches[0] : null;
+                    const clientX = touch ? touch.clientX : e.clientX;
+                    const clientY = touch ? touch.clientY : e.clientY;
+                    return {
+                        offsetX: clientX - rect.left,
+                        offsetY: clientY - rect.top
+                    };
+                }
+            
+                // --- Start everything ---
+                initializeBoard();
             }
+            // --- END: Tactical Board Logic ---
 
 
             // Roles Analysis Logic
@@ -651,14 +903,23 @@
                 });
             }
 
-            document.getElementById('generateChartBtn').addEventListener('click', generateChart);
+            const generateChartBtn = document.getElementById('generateChartBtn');
+            if(generateChartBtn) {
+                generateChartBtn.addEventListener('click', generateChart);
+            }
             
             // General Page Navigation
             function showPage(pageId) {
                 pages.forEach(page => page.classList.toggle('active', page.id === pageId));
                 navLinks.forEach(link => link.classList.toggle('active', link.dataset.page === pageId));
-                mobileNav.value = pageId;
+                if (mobileNav) mobileNav.value = pageId;
                 window.scrollTo(0, 0);
+
+                // Initialize tactical board only when its page is shown
+                if (pageId === 'tablero' && canvasContainer && !canvasContainer.classList.contains('initialized')) {
+                    initializeBoard();
+                    canvasContainer.classList.add('initialized');
+                }
             }
 
             navLinks.forEach(link => {
@@ -668,9 +929,11 @@
                 });
             });
 
-            mobileNav.addEventListener('change', () => {
-                showPage(mobileNav.value);
-            });
+            if (mobileNav) {
+                mobileNav.addEventListener('change', () => {
+                    showPage(mobileNav.value);
+                });
+            }
 
             nextButtons.forEach(button => {
                 button.addEventListener('click', () => {
