@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Propuesta Doctoral: Modelo Administrativo Híbrido de Resiliencia Organizacional</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -15,8 +16,8 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #fdfdfc;
-            color: #333;
+            background-color: #f8f9fa;
+            color: #212529;
         }
         .nav-link {
             transition: all 0.3s ease;
@@ -31,7 +32,7 @@
             bottom: -4px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #2563eb;
+            background-color: #0d6efd;
             transition: width 0.3s ease;
         }
         .nav-link.active::after,
@@ -40,39 +41,65 @@
         }
         .section-card {
             background-color: #ffffff;
-            border: 1px solid #e5e7eb;
+            border: 1px solid #dee2e6;
             border-radius: 0.75rem;
-            padding: 2rem;
+            padding: 2.5rem;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
         }
         .page {
             display: none;
-            animation: fadeIn 0.5s ease-in-out;
+            animation: fadeIn 0.6s ease-in-out;
         }
         .page.active {
             display: block;
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-button {
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        #tactical-board {
+            background-image: linear-gradient(rgba(209, 213, 219, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(209, 213, 219, 0.5) 1px, transparent 1px);
+            background-size: 20px 20px;
+            touch-action: none;
+        }
+        .resource-item {
+            cursor: grab;
+            user-select: none;
+        }
+        .resource-item:active {
+            cursor: grabbing;
+        }
+        .placed-resource {
+            position: absolute;
+            cursor: move;
+            user-select: none;
         }
     </style>
 </head>
 <body class="antialiased">
 
     <!-- Header & Navigation -->
-    <header class="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
+    <header class="bg-white/90 backdrop-blur-lg shadow-sm sticky top-0 z-50 border-b border-gray-200">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <div class="text-xl font-bold text-blue-800">
                 Propuesta Doctoral
             </div>
-            <div class="hidden md:flex space-x-8" id="desktop-nav">
-                <a data-page="inicio" class="nav-link active">Inicio</a>
-                <a data-page="problema" class="nav-link">Problema</a>
-                <a data-page="propuesta" class="nav-link">Propuesta</a>
-                <a data-page="modelo" class="nav-link">Modelo Híbrido</a>
-                <a data-page="marco" class="nav-link">Marco Teórico</a>
-                <a data-page="bibliografia" class="nav-link">Bibliografía</a>
+            <div class="hidden md:flex flex-wrap items-center text-sm lg:text-base" id="desktop-nav">
+                <a data-page="inicio" class="nav-link active px-3 py-2">Inicio</a>
+                <a data-page="problema" class="nav-link px-3 py-2">Problema</a>
+                <a data-page="propuesta" class="nav-link px-3 py-2">Propuesta</a>
+                <a data-page="modelo" class="nav-link px-3 py-2">Modelo Híbrido</a>
+                <a data-page="analisis" class="nav-link px-3 py-2">Análisis de Roles</a>
+                <a data-page="tablero" class="nav-link px-3 py-2">Tablero Táctico</a>
+                <a data-page="marco" class="nav-link px-3 py-2">Marco Teórico</a>
+                <a data-page="bibliografia" class="nav-link px-3 py-2">Bibliografía</a>
             </div>
             <div class="md:hidden">
                 <select id="mobile-nav" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
@@ -80,6 +107,8 @@
                     <option value="problema">Problema</option>
                     <option value="propuesta">Propuesta</option>
                     <option value="modelo">Modelo Híbrido</option>
+                    <option value="analisis">Análisis de Roles</option>
+                    <option value="tablero">Tablero Táctico</option>
                     <option value="marco">Marco Teórico</option>
                     <option value="bibliografia">Bibliografía</option>
                 </select>
@@ -87,11 +116,11 @@
         </nav>
     </header>
 
-    <main class="container mx-auto px-6 py-12">
+    <main class="container mx-auto px-6 py-16">
 
         <!-- Page: Inicio -->
         <section id="inicio" class="page active">
-            <div class="text-center mb-12">
+            <div class="text-center mb-16">
                 <h1 class="text-4xl md:text-5xl font-bold text-blue-900 leading-tight mb-4">
                     Modelo Administrativo Híbrido de Resiliencia Organizacional (MAHRO)
                 </h1>
@@ -100,23 +129,23 @@
                 </p>
             </div>
 
-            <div class="section-card max-w-5xl mx-auto">
-                <div class="flex flex-col md:flex-row items-start gap-8">
-                    <img src="https://raw.githubusercontent.com/instructorandradedcc/PROPUESTA-MAHRO/main/olmer.jpg" alt="Foto de Olmer Geovanny Andrade Cardenas" class="w-36 h-44 rounded-lg object-cover shadow-md flex-shrink-0 mx-auto md:mx-0">
-                    <div class="flex-grow">
-                        <h2 class="text-2xl font-bold text-blue-800">Olmer Geovanny Andrade Cardenas</h2>
-                        <p class="text-md text-gray-500 mb-4">Aspirante Doctoral</p>
-                        <ul class="space-y-2 text-gray-700 text-sm">
-                            <li class="flex items-start"><span class="w-4 h-4 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>Ingeniero Industrial y Administrador de Empresas</li>
-                            <li class="flex items-start"><span class="w-4 h-4 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>Maestrante en Gerencia de Proyectos y Procesos</li>
-                            <li class="flex items-start"><span class="w-4 h-4 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>Tecnólogo en Gobierno Local</li>
-                            <li class="flex items-start"><span class="w-4 h-4 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>Técnico en Búsqueda y Rescate</li>
-                            <li class="flex items-start"><span class="w-4 h-4 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>Técnico en Gestión de Riesgos y Emergencias</li>
-                            <li class="flex items-start"><span class="w-4 h-4 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>Técnico en Gestión Ambiental y Cambio Climático</li>
-                            <li class="flex items-start"><span class="w-4 h-4 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>Voluntario e Instructor en la Defensa Civil Colombiana. Certificado en Rescate de Estructuras Colapsadas (CRECL) y Sistema Comando de Incidentes (SCI).</li>
-                            <li class="flex items-start"><span class="w-4 h-4 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>Desarrollador de Prótesis Biónicas y Realidad Aumentada</li>
+            <div class="section-card max-w-6xl mx-auto">
+                <div class="grid md:grid-cols-3 gap-12 items-center">
+                    <div class="md:col-span-1 flex justify-center">
+                        <img src="https://raw.githubusercontent.com/instructorandradedcc/PROPUESTA-MAHRO/main/olmer.jpg" alt="Foto de Olmer Geovanny Andrade Cardenas" class="w-48 h-64 rounded-lg object-cover shadow-lg">
+                    </div>
+                    <div class="md:col-span-2">
+                        <h2 class="text-3xl font-bold text-blue-800">Olmer Geovanny Andrade Cardenas</h2>
+                        <p class="text-lg text-gray-500 mb-6">Aspirante Doctoral</p>
+                        <ul class="space-y-3 text-gray-700">
+                            <li class="flex items-start"><span class="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>Ingeniero Industrial y Administrador de Empresas</li>
+                            <li class="flex items-start"><span class="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>Maestrante en Gerencia de Proyectos y Procesos</li>
+                            <li class="flex items-start"><span class="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>Tecnólogo en Gobierno Local</li>
+                            <li class="flex items-start"><span class="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>Técnico en Búsqueda y Rescate, Gestión de Riesgos y Emergencias, y Gestión Ambiental.</li>
+                            <li class="flex items-start"><span class="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>Voluntario e Instructor (CRECL, SCI) en la Defensa Civil Colombiana.</li>
+                            <li class="flex items-start"><span class="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>Desarrollador de Prótesis Biónicas y Realidad Aumentada</li>
                         </ul>
-                        <div class="mt-6 pt-4 border-t border-gray-200 text-sm text-gray-600">
+                        <div class="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-600">
                              <p><span class="font-semibold text-gray-800">Director. PhD:</span> JORGE ENRIQUE ARIAS CALDERON</p>
                              <p><span class="font-semibold text-gray-800">Grupo de investigación:</span> Derecho, Sociedad y Estado</p>
                              <p><span class="font-semibold text-gray-800">Línea de investigación:</span> Tendencias y reforma de la administración pública</p>
@@ -125,8 +154,8 @@
                 </div>
             </div>
             
-            <div class="mt-12 text-center">
-                <button data-next="problema" class="next-btn bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">Siguiente Página &rarr;</button>
+            <div class="mt-16 text-center">
+                <button data-next="problema" class="next-btn nav-button bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700">Siguiente Página &rarr;</button>
             </div>
         </section>
 
@@ -167,8 +196,8 @@
             </div>
             
             <div class="mt-12 flex justify-between">
-                <button data-prev="inicio" class="prev-btn bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">&larr; Anterior</button>
-                <button data-next="propuesta" class="next-btn bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">Siguiente &rarr;</button>
+                <button data-prev="inicio" class="prev-btn nav-button bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300">&larr; Anterior</button>
+                <button data-next="propuesta" class="next-btn nav-button bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700">Siguiente &rarr;</button>
             </div>
         </section>
 
@@ -204,21 +233,15 @@
                     <p class="text-gray-700 mb-4">Este proyecto trasciende lo académico para contribuir al desarrollo económico sostenible de la región Pacífica. El MAHRO busca generar impactos tangibles:</p>
                     <ul class="space-y-4 text-gray-700">
                         <li class="flex items-start">
-                            <div class="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center mr-4 mt-1">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 20.944a11.955 11.955 0 0118 0c0-3.232-.725-6.246-2.056-8.877a11.955 11.955 0 00-2.326-3.04z"></path></svg>
-                            </div>
+                            <div class="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center mr-4 mt-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 20.944a11.955 11.955 0 0118 0c0-3.232-.725-6.246-2.056-8.877a11.955 11.955 0 00-2.326-3.04z"></path></svg></div>
                             <div><span class="font-semibold">Estabilidad Económica:</span> Minimizar interrupciones y pérdidas post-crisis, protegiendo el empleo y el tejido empresarial regional.</div>
                         </li>
                         <li class="flex items-start">
-                             <div class="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center mr-4 mt-1">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                            </div>
+                             <div class="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center mr-4 mt-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div>
                             <div><span class="font-semibold">Atracción de Inversión:</span> Convertir a las empresas resilientes en destinos más seguros y atractivos para la inversión nacional y extranjera.</div>
                         </li>
                         <li class="flex items-start">
-                            <div class="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center mr-4 mt-1">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.124-1.282-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.124-1.282.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                            </div>
+                            <div class="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center mr-4 mt-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.124-1.282-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.124-1.282.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg></div>
                             <div><span class="font-semibold">Fortalecimiento del Capital Humano:</span> Desarrollar nuevas competencias en gestión de crisis, elevando el nivel profesional en la región.</div>
                         </li>
                     </ul>
@@ -234,8 +257,8 @@
             </div>
             
             <div class="mt-12 flex justify-between">
-                <button data-prev="problema" class="prev-btn bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">&larr; Anterior</button>
-                <button data-next="modelo" class="next-btn bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">Siguiente &rarr;</button>
+                <button data-prev="problema" class="prev-btn nav-button bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300">&larr; Anterior</button>
+                <button data-next="modelo" class="next-btn nav-button bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700">Siguiente &rarr;</button>
             </div>
         </section>
 
@@ -281,10 +304,109 @@
             </div>
 
             <div class="mt-12 flex justify-between">
-                <button data-prev="propuesta" class="prev-btn bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">&larr; Anterior</button>
-                <button data-next="marco" class="next-btn bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">Siguiente &rarr;</button>
+                <button data-prev="propuesta" class="prev-btn nav-button bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300">&larr; Anterior</button>
+                <button data-next="analisis" class="next-btn nav-button bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700">Siguiente &rarr;</button>
             </div>
         </section>
+
+        <!-- Page: Analisis de Roles -->
+        <section id="analisis" class="page">
+            <div class="text-center"><h2 class="text-3xl font-bold text-blue-800">Análisis Interactivo de Roles</h2></div>
+            <div class="mt-10 grid lg:grid-cols-5 gap-8">
+                <div class="lg:col-span-3 section-card">
+                    <h3 class="text-xl font-semibold text-blue-900 mb-4">Tabla de Equivalencia de Cargos (SCI a Empresa)</h3>
+                    <input type="text" id="analisisSearchInput" placeholder="Filtrar por área, cargo o función..." class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500">
+                    <div class="overflow-auto max-h-[450px]">
+                        <table class="w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3">Área SCI</th>
+                                    <th scope="col" class="px-4 py-3">Cargo SCI</th>
+                                    <th scope="col" class="px-4 py-3">Equivalente Empresa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analisisRolesTable">
+                                <!-- JS will populate this -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 section-card">
+                    <h3 class="text-xl font-semibold text-blue-900 mb-4">Visualización de Datos</h3>
+                     <p class="text-gray-600 mb-6 text-sm">Genere una gráfica para visualizar la distribución de roles dentro de la estructura de respuesta propuesta.</p>
+                     <button id="generateChartBtn" class="w-full nav-button bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 mb-6">Generar Gráfica de Distribución</button>
+                    <div class="relative h-80">
+                         <canvas id="rolesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-12 flex justify-between">
+                <button data-prev="modelo" class="prev-btn nav-button bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300">&larr; Anterior</button>
+                <button data-next="tablero" class="next-btn nav-button bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700">Siguiente &rarr;</button>
+            </div>
+        </section>
+
+        <!-- Page: Tablero Táctico -->
+        <section id="tablero" class="page">
+             <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-blue-800">Tablero Táctico Interactivo</h2>
+                <p class="mt-2 text-lg text-gray-600 max-w-3xl mx-auto">Herramienta de simulación para la planificación y el despliegue de recursos en un incidente.</p>
+            </div>
+
+            <div class="grid lg:grid-cols-4 gap-6">
+                <!-- Columna de Recursos -->
+                <div class="lg:col-span-1 section-card">
+                    <h3 class="text-lg font-semibold text-blue-900 mb-4">Biblioteca de Recursos</h3>
+                    <div class="space-y-4" id="resource-library">
+                        <div class="resource-item flex items-center bg-gray-100 p-2 rounded-lg border" draggable="true" data-type="PC" data-label="PC">
+                            <span class="text-2xl mr-3">★</span> <span class="font-semibold">Puesto de Comando</span>
+                        </div>
+                         <div class="resource-item flex items-center bg-gray-100 p-2 rounded-lg border" draggable="true" data-type="Base" data-label="B">
+                            <span class="text-2xl mr-3">⚑</span> <span class="font-semibold">Base</span>
+                        </div>
+                        <div class="resource-item flex items-center bg-gray-100 p-2 rounded-lg border" draggable="true" data-type="Ambulancia" data-label="🚑">
+                            <span class="text-2xl mr-3">🚑</span> <span class="font-semibold">Ambulancia</span>
+                        </div>
+                        <div class="resource-item flex items-center bg-gray-100 p-2 rounded-lg border" draggable="true" data-type="Bomberos" data-label="🚒">
+                            <span class="text-2xl mr-3">🚒</span> <span class="font-semibold">Bomberos</span>
+                        </div>
+                         <div class="resource-item flex items-center bg-gray-100 p-2 rounded-lg border" draggable="true" data-type="Logistica" data-label="🚚">
+                            <span class="text-2xl mr-3">🚚</span> <span class="font-semibold">Logística</span>
+                        </div>
+                        <div class="resource-item flex items-center bg-gray-100 p-2 rounded-lg border" draggable="true" data-type="Personal" data-label="👩‍🚒">
+                            <span class="text-2xl mr-3">👩‍🚒</span> <span class="font-semibold">Personal</span>
+                        </div>
+                         <div class="resource-item flex items-center bg-gray-100 p-2 rounded-lg border" draggable="true" data-type="PuntoEncuentro" data-label="📍">
+                            <span class="text-2xl mr-3">📍</span> <span class="font-semibold">Punto de Encuentro</span>
+                        </div>
+                    </div>
+                    <button id="clear-board" class="w-full mt-6 nav-button bg-red-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-700">Limpiar Tablero</button>
+                </div>
+
+                <!-- Tablero y Formulario -->
+                <div class="lg:col-span-3">
+                    <div class="section-card mb-6">
+                        <h3 class="text-lg font-semibold text-blue-900 mb-4">Formulario Táctico (Adaptado de SCI 201)</h3>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div><label class="font-semibold">1. Incidente:</label><input type="text" value="Simulacro Incendio Bodega Central" class="w-full mt-1 p-1 border rounded"></div>
+                            <div><label class="font-semibold">2. Periodo Operacional:</label><input type="text" value="16/10/2025 22:00 a 17/10/2025 06:00" class="w-full mt-1 p-1 border rounded"></div>
+                            <div class="col-span-2"><label class="font-semibold">3. Objetivos:</label><textarea class="w-full mt-1 p-1 border rounded" rows="3">1. Establecer perímetro de seguridad y controlar acceso.
+2. Extinguir incendio y prevenir propagación.
+3. Realizar búsqueda y rescate de posibles víctimas.
+4. Evaluar daños estructurales y a inventario.</textarea></div>
+                        </div>
+                    </div>
+                    <div id="tactical-board" class="section-card h-[500px] relative overflow-hidden bg-gray-50">
+                        <!-- Placed resources will appear here -->
+                    </div>
+                </div>
+            </div>
+            <div class="mt-12 flex justify-between">
+                <button data-prev="analisis" class="prev-btn nav-button bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300">&larr; Anterior</button>
+                <button data-next="marco" class="next-btn nav-button bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700">Siguiente &rarr;</button>
+            </div>
+        </section>
+
 
         <!-- Page: Marco Teórico -->
         <section id="marco" class="page">
@@ -301,8 +423,8 @@
                 <div class="section-card"><h3 class="font-semibold text-blue-900">Estudios sobre Riesgo Compuesto</h3><p class="mt-2 text-gray-600">Análisis sobre la interacción de múltiples amenazas que magnifican el impacto y sus consecuencias.</p></div>
             </div>
              <div class="mt-12 flex justify-between">
-                <button data-prev="modelo" class="prev-btn bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">&larr; Anterior</button>
-                <button data-next="bibliografia" class="next-btn bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">Siguiente &rarr;</button>
+                <button data-prev="tablero" class="prev-btn nav-button bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300">&larr; Anterior</button>
+                <button data-next="bibliografia" class="next-btn nav-button bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700">Siguiente &rarr;</button>
             </div>
         </section>
 
@@ -325,8 +447,8 @@
                 </ul>
             </div>
              <div class="mt-12 flex justify-between">
-                <button data-prev="marco" class="prev-btn bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">&larr; Anterior</button>
-                <button data-next="inicio" class="next-btn bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">Volver al Inicio &circlearrowleft;</button>
+                <button data-prev="marco" class="prev-btn nav-button bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300">&larr; Anterior</button>
+                <button data-next="inicio" class="next-btn nav-button bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700">Volver al Inicio &circlearrowleft;</button>
             </div>
         </section>
 
@@ -346,14 +468,195 @@
             const mobileNav = document.getElementById('mobile-nav');
             const nextButtons = document.querySelectorAll('.next-btn');
             const prevButtons = document.querySelectorAll('.prev-btn');
+            let rolesChartInstance = null;
+            
+            // Tactical Board Logic
+            const resourceLibrary = document.getElementById('resource-library');
+            const tacticalBoard = document.getElementById('tactical-board');
+            const clearBoardBtn = document.getElementById('clear-board');
+            let draggedItem = null;
 
+            if (resourceLibrary && tacticalBoard) {
+                resourceLibrary.addEventListener('dragstart', (e) => {
+                    if (e.target.classList.contains('resource-item')) {
+                        draggedItem = e.target;
+                        setTimeout(() => {
+                            e.target.style.display = 'none';
+                        }, 0);
+                    }
+                });
+
+                resourceLibrary.addEventListener('dragend', (e) => {
+                    if (draggedItem) {
+                        setTimeout(() => {
+                            draggedItem.style.display = 'flex';
+                            draggedItem = null;
+                        }, 0);
+                    }
+                });
+
+                tacticalBoard.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                });
+
+                tacticalBoard.addEventListener('dragenter', (e) => {
+                    e.preventDefault();
+                    tacticalBoard.classList.add('bg-gray-100');
+                });
+
+                tacticalBoard.addEventListener('dragleave', () => {
+                    tacticalBoard.classList.remove('bg-gray-100');
+                });
+
+                tacticalBoard.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    tacticalBoard.classList.remove('bg-gray-100');
+                    if (draggedItem) {
+                        const boardRect = tacticalBoard.getBoundingClientRect();
+                        const x = e.clientX - boardRect.left;
+                        const y = e.clientY - boardRect.top;
+
+                        const newResource = document.createElement('div');
+                        newResource.className = 'placed-resource text-3xl';
+                        newResource.textContent = draggedItem.dataset.label;
+                        newResource.style.left = `${x - 20}px`;
+                        newResource.style.top = `${y - 20}px`;
+                        makeDraggable(newResource);
+                        tacticalBoard.appendChild(newResource);
+                    }
+                });
+
+                clearBoardBtn.addEventListener('click', () => {
+                    tacticalBoard.innerHTML = '';
+                });
+
+                function makeDraggable(element) {
+                    let offsetX, offsetY, isDragging = false;
+                    
+                    element.addEventListener('mousedown', (e) => {
+                        isDragging = true;
+                        offsetX = e.clientX - element.offsetLeft;
+                        offsetY = e.clientY - element.offsetTop;
+                        element.style.cursor = 'grabbing';
+                    });
+
+                    document.addEventListener('mousemove', (e) => {
+                        if (isDragging) {
+                            const boardRect = tacticalBoard.getBoundingClientRect();
+                            let newX = e.clientX - offsetX;
+                            let newY = e.clientY - offsetY;
+
+                            // Constrain to board boundaries
+                            if (newX < 0) newX = 0;
+                            if (newY < 0) newY = 0;
+                            if (newX + element.clientWidth > boardRect.width) newX = boardRect.width - element.clientWidth;
+                            if (newY + element.clientHeight > boardRect.height) newY = boardRect.height - element.clientHeight;
+                            
+                            element.style.left = `${newX}px`;
+                            element.style.top = `${newY}px`;
+                        }
+                    });
+
+                    document.addEventListener('mouseup', () => {
+                        isDragging = false;
+                        element.style.cursor = 'move';
+                    });
+                }
+            }
+
+
+            // Roles Analysis Logic
+            const rolesData = [
+                { area: "Mando", cargoSci: "Comandante del Incidente", equivalente: "Coordinador de la Brigada / Director Operativo" },
+                { area: "Staff de Mando", cargoSci: "Oficial de Seguridad", equivalente: "Gerente de Riesgos y Seguridad" },
+                { area: "Staff de Mando", cargoSci: "Oficial de Informaciones Públicas", equivalente: "Gerente de Comunicaciones" },
+                { area: "Staff de Mando", cargoSci: "Oficial de Enlace", equivalente: "Coordinador de Alianzas o Relaciones Externas" },
+                { area: "Sección Planificación", cargoSci: "Jefe de Planificación", equivalente: "Jefe de Estrategia y Planificación" },
+                { area: "Sección Planificación", cargoSci: "Asistentes de Planificación", equivalente: "Analistas de Estrategia / Planificación" },
+                { area: "Sección Operaciones", cargoSci: "Jefe de Operaciones", equivalente: "Gerente de Operaciones" },
+                { area: "Sección Operaciones", cargoSci: "Equipos por Divisiones/Grupos", equivalente: "Supervisores de Proyectos / Líderes de Área" },
+                { area: "Sección Logística", cargoSci: "Jefe de Logística", equivalente: "Gerente de Logística y Soporte" },
+                { area: "Sección Logística", cargoSci: "Unidad de Servicios", equivalente: "Depto. de Soporte Técnico/Administrativo" },
+                { area: "Sección Administración y Finanzas", cargoSci: "Jefe de Admin. y Finanzas", equivalente: "Gerente de Administración y Finanzas" },
+                { area: "Sección Administración y Finanzas", cargoSci: "Unidad de Registro y Compensación", equivalente: "Departamento de Nómina y RRHH" }
+            ];
+
+            const tableBody = document.getElementById('analisisRolesTable');
+            const searchInput = document.getElementById('analisisSearchInput');
+
+            function populateTable(data) {
+                if (!tableBody) return;
+                tableBody.innerHTML = '';
+                if (data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="3" class="text-center px-4 py-4">No se encontraron resultados.</td></tr>`;
+                    return;
+                }
+                data.forEach(role => {
+                    const row = `
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-4 py-3 font-medium text-gray-900">${role.area}</td>
+                            <td class="px-4 py-3">${role.cargoSci}</td>
+                            <td class="px-4 py-3">${role.equivalente}</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('keyup', () => {
+                    const searchTerm = searchInput.value.toLowerCase();
+                    const filteredData = rolesData.filter(role =>
+                        role.area.toLowerCase().includes(searchTerm) ||
+                        role.cargoSci.toLowerCase().includes(searchTerm) ||
+                        role.equivalente.toLowerCase().includes(searchTerm)
+                    );
+                    populateTable(filteredData);
+                });
+            }
+            populateTable(rolesData);
+
+            function generateChart() {
+                const ctx = document.getElementById('rolesChart').getContext('2d');
+                const areaCounts = rolesData.reduce((acc, role) => {
+                    acc[role.area] = (acc[role.area] || 0) + 1;
+                    return acc;
+                }, {});
+
+                const labels = Object.keys(areaCounts);
+                const data = Object.values(areaCounts);
+                
+                if (rolesChartInstance) {
+                    rolesChartInstance.destroy();
+                }
+
+                rolesChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Número de Roles por Área',
+                            data: data,
+                            backgroundColor: ['rgba(54, 162, 235, 0.6)','rgba(255, 99, 132, 0.6)','rgba(75, 192, 192, 0.6)','rgba(255, 206, 86, 0.6)','rgba(153, 102, 255, 0.6)', 'rgba(255, 159, 64, 0.6)'],
+                            borderColor: ['rgba(54, 162, 235, 1)','rgba(255, 99, 132, 1)','rgba(75, 192, 192, 1)','rgba(255, 206, 86, 1)','rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                        plugins: { legend: { display: false }, title: { display: true, text: 'Distribución de Roles por Área Funcional' } }
+                    }
+                });
+            }
+
+            document.getElementById('generateChartBtn').addEventListener('click', generateChart);
+            
+            // General Page Navigation
             function showPage(pageId) {
-                pages.forEach(page => {
-                    page.classList.toggle('active', page.id === pageId);
-                });
-                navLinks.forEach(link => {
-                    link.classList.toggle('active', link.dataset.page === pageId);
-                });
+                pages.forEach(page => page.classList.toggle('active', page.id === pageId));
+                navLinks.forEach(link => link.classList.toggle('active', link.dataset.page === pageId));
                 mobileNav.value = pageId;
                 window.scrollTo(0, 0);
             }
@@ -384,8 +687,6 @@
     </script>
 </body>
 </html>
-
-
 
 
 
