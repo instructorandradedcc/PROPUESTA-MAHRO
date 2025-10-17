@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" class="scroll-smooth">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,8 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Chosen Palette: Calm Neutrals -->
-    <!-- Application Structure Plan: Se ha diseñado una aplicación de una sola página con desplazamiento vertical y una barra de navegación fija para facilitar el acceso a las secciones clave. La estructura es temática, no lineal, para permitir al usuario explorar los componentes de la tesis de forma intuitiva. Comienza con una introducción (Inicio), define el contexto (Problema), presenta la solución (Propuesta y Modelo Híbrido), fundamenta teóricamente (Marco Teórico) y finaliza con recursos (Bibliografía). Esta estructura fue elegida porque guía al lector lógicamente desde el 'porqué' hasta el 'cómo' y el 'qué', haciendo que un tema académico complejo sea más digerible. Las interacciones clave son un organigrama visual y una tabla de equivalencias de cargos con filtro, que son los elementos más novedosos de la propuesta y merecen una presentación interactiva para su total comprensión. -->
-    <!-- Visualization & Content Choices: 1. Organigrama del Modelo: Se recreó el organigrama de la imagen PNG usando HTML/CSS para que sea responsive y claro. Objetivo: Organizar. Método: Diagrama en HTML/CSS. Interacción: Visualización directa de la jerarquía. Justificación: Un diagrama estático en imagen no se adapta a diferentes pantallas; la versión en código sí. 2. Tabla de Equivalencia de Cargos: El CSV se transformó en una tabla HTML interactiva con un campo de búsqueda en vivo. Objetivo: Comparar/Organizar. Método: Tabla HTML dinámica. Interacción: Filtrado de datos en tiempo real. Justificación: Permite al usuario encontrar y comparar rápidamente los roles entre el SCI y el entorno empresarial, que es un pilar del modelo híbrido. 3. Diagrama de Riesgo Compuesto: Se usó HTML/CSS para visualizar la convergencia de amenazas. Objetivo: Informar. Método: Diagrama simple en HTML/CSS. Interacción: Estática pero visualmente más impactante que el texto. Justificación: Explica un concepto central de forma rápida y memorable. -->
+    <!-- Application Structure Plan: Se ha rediseñado la aplicación para funcionar como una presentación paginada. Cada sección es una 'página' que se muestra u oculta, controlada por botones de 'Siguiente/Anterior' y la barra de navegación. Esta estructura es ideal para presentaciones guiadas, permitiendo al expositor controlar el flujo de información y enfocar la atención de la audiencia en un tema a la vez. Se mantiene la barra de navegación superior para acceso directo a cualquier sección. Esta estructura convierte la propuesta en una herramienta de presentación activa. -->
+    <!-- Visualization & Content Choices: 1. Perfil de Autor (Nuevo): Se agregó una sección de perfil con foto y biografía en la página de inicio. Objetivo: Informar/Introducir. Método: Layout de dos columnas HTML/CSS. Interacción: Estática. Justificación: Personaliza la propuesta y establece la autoridad del autor desde el principio. 2. Diagrama de Riesgo Compuesto (Revisado): La lista de texto se reemplazó con un diagrama visual creado con HTML/Tailwind. Objetivo: Informar. Método: Diagrama en HTML/CSS. Interacción: Visualización directa. Justificación: Es más efectivo y rápido para comunicar la convergencia de amenazas que el texto plano. 3. Tabla de Equivalencias (Sin cambios): Se mantiene la tabla interactiva con filtro en su página correspondiente, ya que es un elemento de exploración clave. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
@@ -21,6 +21,7 @@
         .nav-link {
             transition: all 0.3s ease;
             position: relative;
+            cursor: pointer;
         }
         .nav-link::after {
             content: '';
@@ -43,11 +44,17 @@
             border-radius: 0.75rem;
             padding: 2rem;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .section-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07);
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .page.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .organigram-box {
             border: 2px solid #60a5fa;
@@ -78,22 +85,22 @@
             <div class="text-xl font-bold text-blue-800">
                 Propuesta Doctoral
             </div>
-            <div class="hidden md:flex space-x-8">
-                <a href="#inicio" class="nav-link active">Inicio</a>
-                <a href="#problema" class="nav-link">Problema</a>
-                <a href="#propuesta" class="nav-link">Propuesta</a>
-                <a href="#modelo" class="nav-link">Modelo Híbrido</a>
-                <a href="#marco" class="nav-link">Marco Teórico</a>
-                <a href="#bibliografia" class="nav-link">Bibliografía</a>
+            <div class="hidden md:flex space-x-8" id="desktop-nav">
+                <a data-page="inicio" class="nav-link active">Inicio</a>
+                <a data-page="problema" class="nav-link">Problema</a>
+                <a data-page="propuesta" class="nav-link">Propuesta</a>
+                <a data-page="modelo" class="nav-link">Modelo Híbrido</a>
+                <a data-page="marco" class="nav-link">Marco Teórico</a>
+                <a data-page="bibliografia" class="nav-link">Bibliografía</a>
             </div>
             <div class="md:hidden">
                 <select id="mobile-nav" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                    <option value="#inicio">Inicio</option>
-                    <option value="#problema">Problema</option>
-                    <option value="#propuesta">Propuesta</option>
-                    <option value="#modelo">Modelo Híbrido</option>
-                    <option value="#marco">Marco Teórico</option>
-                    <option value="#bibliografia">Bibliografía</option>
+                    <option value="inicio">Inicio</option>
+                    <option value="problema">Problema</option>
+                    <option value="propuesta">Propuesta</option>
+                    <option value="modelo">Modelo Híbrido</option>
+                    <option value="marco">Marco Teórico</option>
+                    <option value="bibliografia">Bibliografía</option>
                 </select>
             </div>
         </nav>
@@ -101,80 +108,109 @@
 
     <main class="container mx-auto px-6 py-12">
 
-        <!-- Section: Inicio -->
-        <section id="inicio" class="min-h-[80vh] flex items-center">
-            <div class="w-full text-center">
-                <h1 class="text-4xl md:text-6xl font-bold text-blue-900 leading-tight mb-4">
+        <!-- Page: Inicio -->
+        <section id="inicio" class="page active">
+            <div class="text-center mb-12">
+                <h1 class="text-4xl md:text-5xl font-bold text-blue-900 leading-tight mb-4">
                     Modelo Administrativo Híbrido de Resiliencia Organizacional
                 </h1>
-                <p class="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto mb-6">
+                <p class="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto">
                     Articulando la Respuesta Táctica y la Continuidad del Negocio en el Entorno de Riesgo Compuesto del Pacífico Colombiano.
                 </p>
-                <div class="text-md text-gray-500">
-                    <p><span class="font-semibold">Aspirante doctoral:</span> Olmer Geovanny Andrade Cardenas</p>
-                    <p><span class="font-semibold">Director de Tesis:</span> PhD. Jorge Enrique Arias Calderón</p>
+            </div>
+
+            <div class="section-card max-w-5xl mx-auto">
+                <div class="flex flex-col md:flex-row items-start gap-8">
+                    <img src="https://placehold.co/150x180/e0e7ff/3730a3?text=Olmer+A." alt="Foto de Olmer Geovanny Andrade Cardenas" class="w-36 h-44 rounded-lg object-cover shadow-md flex-shrink-0 mx-auto md:mx-0">
+                    <div class="flex-grow">
+                        <h2 class="text-2xl font-bold text-blue-800">Olmer Geovanny Andrade Cardenas</h2>
+                        <p class="text-md text-gray-500 mb-4">Aspirante Doctoral</p>
+                        <ul class="space-y-2 text-gray-700 text-sm">
+                            <li class="flex items-start"><span class="w-4 h-4 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>Ingeniero Industrial y Administrador de Empresas</li>
+                            <li class="flex items-start"><span class="w-4 h-4 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>Maestrante en Gerencia de Proyectos y Procesos</li>
+                            <li class="flex items-start"><span class="w-4 h-4 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>Tecnólogo en Gobierno Local</li>
+                            <li class="flex items-start"><span class="w-4 h-4 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>Técnico en Búsqueda y Rescate</li>
+                            <li class="flex items-start"><span class="w-4 h-4 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>Técnico en Gestión de Riesgos y Emergencias</li>
+                            <li class="flex items-start"><span class="w-4 h-4 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>Técnico en Gestión Ambiental y Cambio Climático</li>
+                            <li class="flex items-start"><span class="w-4 h-4 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>Voluntario e Instructor en la Defensa Civil Colombiana. Certificado en Rescate de Estructuras Colapsadas (CRECL) y Sistema Comando de Incidentes (SCI).</li>
+                            <li class="flex items-start"><span class="w-4 h-4 bg-blue-500 rounded-full mr-3 mt-1 flex-shrink-0"></span>Desarrollador de Prótesis Biónicas y Realidad Aumentada</li>
+                        </ul>
+                        <div class="mt-6 pt-4 border-t border-gray-200 text-sm text-gray-600">
+                             <p><span class="font-semibold text-gray-800">Director. PhD:</span> JORGE ENRIQUE ARIAS CALDERON</p>
+                             <p><span class="font-semibold text-gray-800">Grupo de investigación:</span> Derecho, Sociedad y Estado</p>
+                             <p><span class="font-semibold text-gray-800">Línea de investigación:</span> Tendencias y reforma de la administración pública</p>
+                        </div>
+                    </div>
                 </div>
+            </div>
+            
+            <div class="mt-12 text-center">
+                <button data-next="problema" class="next-btn bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">Siguiente Página &rarr;</button>
             </div>
         </section>
 
-        <!-- Section: Planteamiento del Problema -->
-        <section id="problema" class="py-20 space-y-12">
+        <!-- Page: Planteamiento del Problema -->
+        <section id="problema" class="page">
             <div class="text-center">
                 <h2 class="text-3xl font-bold text-blue-800">Planteamiento del Problema</h2>
-                <p class="mt-2 text-lg text-gray-600 max-w-3xl mx-auto">La normativa colombiana exige planes de gestión de riesgos, pero no define el "cómo" implementarlos, creando una brecha crítica entre la ley y la capacidad real de respuesta.</p>
+                <p class="mt-2 text-lg text-gray-600 max-w-3xl mx-auto">La normativa colombiana exige planes, pero no define el "cómo" implementarlos, creando una brecha crítica entre la ley y la capacidad real de respuesta.</p>
             </div>
 
-            <div class="grid md:grid-cols-2 gap-8 items-center">
+            <div class="grid md:grid-cols-2 gap-8 items-start mt-10">
                 <div class="section-card">
                     <h3 class="text-xl font-semibold text-blue-700 mb-3">La Brecha Normativa</h3>
                     <p class="text-gray-700">
-                        El Decreto 2157 de 2017 exige a las empresas un Plan de Gestión del Riesgo de Desastres (PGRDEPP), definiendo el "qué" se debe documentar. Sin embargo, omite un modelo administrativo sistemático para su desarrollo, implementación y ejecución. Esto resulta en planes estáticos, que a menudo son ineficaces durante una crisis real, dejando a las organizaciones vulnerables a pesar de cumplir formalmente con la ley.
+                        El Decreto 2157 de 2017 exige a las empresas un Plan de Gestión del Riesgo, pero omite un modelo administrativo para su ejecución. Esto resulta en planes estáticos, ineficaces durante una crisis real, dejando a las organizaciones vulnerables.
                     </p>
                     <div class="mt-4 p-4 bg-blue-50 rounded-lg">
                         <p class="text-blue-900 font-semibold">Pregunta de Investigación:</p>
-                        <p class="text-blue-800 italic">¿Cómo puede un modelo administrativo híbrido, que integra la estandarización del Sistema de Comando de Incidentes (SCI) con los principios de continuidad del negocio, cerrar la brecha entre la planificación regulatoria y la resiliencia organizacional efectiva para las empresas en el contexto de riesgo compuesto del Pacífico colombiano?</p>
+                        <p class="text-blue-800 italic">¿Cómo puede un modelo administrativo híbrido, que integra el SCI con la continuidad del negocio, cerrar la brecha entre la planificación y la resiliencia organizacional efectiva en el Pacífico colombiano?</p>
                     </div>
                 </div>
                 <div class="section-card">
-                     <h3 class="text-xl font-semibold text-blue-700 mb-3">Contexto: El Riesgo Compuesto del Pacífico Colombiano</h3>
-                    <p class="text-gray-700 mb-4">
-                        La región del Pacífico colombiano no enfrenta amenazas aisladas, sino un "riesgo compuesto" donde múltiples peligros convergen y se magnifican mutuamente.
-                    </p>
-                    <div class="space-y-4">
-                        <div class="flex items-center p-3 bg-gray-50 rounded-md">
-                            <span class="text-2xl mr-4">🌊</span>
-                            <div>
-                                <h4 class="font-semibold text-gray-800">Peligros Naturales</h4>
-                                <p class="text-sm text-gray-600">Sismos, tsunamis, inundaciones, y fenómenos climáticos extremos.</p>
+                     <h3 class="text-xl font-semibold text-blue-700 mb-3 text-center">Contexto: El Riesgo Compuesto</h3>
+                     <div class="relative mt-6 flex flex-col items-center">
+                        <!-- Converging Lines -->
+                        <div class="absolute top-8 left-1/2 w-px h-16 bg-blue-300 transform -translate-x-1/2"></div>
+                        <div class="absolute top-8 left-1/4 w-px h-8 bg-blue-300 transform rotate-45"></div>
+                        <div class="absolute top-8 right-1/4 w-px h-8 bg-blue-300 transform -rotate-45"></div>
+
+                        <div class="grid grid-cols-3 gap-4 w-full text-center mb-10">
+                            <div class="p-2 border border-blue-200 bg-blue-50 rounded-lg">
+                                <span class="text-2xl">🌊</span>
+                                <h4 class="font-semibold text-blue-800 text-sm mt-1">Peligros Naturales</h4>
+                            </div>
+                            <div class="p-2 border border-red-200 bg-red-50 rounded-lg">
+                                 <span class="text-2xl">🛡️</span>
+                                <h4 class="font-semibold text-red-800 text-sm mt-1">Violencia y Conflicto</h4>
+                            </div>
+                            <div class="p-2 border border-yellow-200 bg-yellow-50 rounded-lg">
+                                <span class="text-2xl">📉</span>
+                                <h4 class="font-semibold text-yellow-800 text-sm mt-1">Vulnerabilidades Sociales</h4>
                             </div>
                         </div>
-                        <div class="flex items-center p-3 bg-gray-50 rounded-md">
-                            <span class="text-2xl mr-4">🛡️</span>
-                            <div>
-                                <h4 class="font-semibold text-gray-800">Conflicto y Violencia</h4>
-                                <p class="text-sm text-gray-600">Presencia de grupos armados, disputas territoriales y violencia social.</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center p-3 bg-gray-50 rounded-md">
-                            <span class="text-2xl mr-4">📉</span>
-                             <div>
-                                <h4 class="font-semibold text-gray-800">Vulnerabilidades Socioeconómicas</h4>
-                                <p class="text-sm text-gray-600">Pobreza, falta de infraestructura y acceso limitado a servicios básicos.</p>
-                            </div>
+                        <div class="p-4 bg-gray-800 text-white rounded-xl shadow-lg z-10">
+                            <h4 class="text-lg font-bold">RIESGO COMPUESTO</h4>
                         </div>
                     </div>
+                     <p class="text-gray-600 mt-6 text-center">La región enfrenta una convergencia de amenazas que se magnifican mutuamente, exigiendo un enfoque de gestión integral.</p>
                 </div>
+            </div>
+            
+            <div class="mt-12 flex justify-between">
+                <button data-prev="inicio" class="prev-btn bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">&larr; Anterior</button>
+                <button data-next="propuesta" class="next-btn bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">Siguiente &rarr;</button>
             </div>
         </section>
 
-        <!-- Section: Propuesta -->
-        <section id="propuesta" class="py-20 bg-gray-50 rounded-2xl">
+        <!-- Page: Propuesta -->
+        <section id="propuesta" class="page">
             <div class="text-center">
                 <h2 class="text-3xl font-bold text-blue-800">Propuesta de Investigación</h2>
                 <p class="mt-2 text-lg text-gray-600 max-w-3xl mx-auto">Desarrollar y validar un modelo administrativo que traduzca la planificación de riesgos en una capacidad de respuesta real y efectiva.</p>
             </div>
 
-            <div class="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="mt-10 grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <div class="section-card text-center">
                     <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 text-blue-600 mb-4">🎯</div>
                     <h3 class="text-lg font-semibold text-blue-900">Objetivo General</h3>
@@ -186,158 +222,132 @@
                     <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 text-blue-600 mb-4 float-left mr-4">📋</div>
                     <h3 class="text-lg font-semibold text-blue-900">Objetivos Específicos</h3>
                      <ul class="mt-2 text-gray-600 list-disc list-inside space-y-2">
-                        <li>Analizar la estructura y principios del Sistema de Comando de Incidentes (SCI) y su adaptabilidad al sector privado.</li>
-                        <li>Evaluar marcos de continuidad de negocio (ej. ISO 22301) para identificar sinergias y brechas con los modelos de respuesta a emergencias.</li>
-                        <li>Diseñar la estructura del modelo híbrido, definiendo roles, responsabilidades, procesos de comunicación y toma de decisiones.</li>
-                        <li>Validar la aplicabilidad y coherencia del modelo mediante consultas con expertos del sector privado y de la gestión de riesgos en Colombia.</li>
+                        <li>Analizar la estructura del SCI y su adaptabilidad al sector privado.</li>
+                        <li>Evaluar marcos de continuidad de negocio (ej. ISO 22301).</li>
+                        <li>Diseñar la estructura del modelo híbrido (roles, procesos, comunicación).</li>
+                        <li>Validar la aplicabilidad del modelo mediante consultas con expertos.</li>
                     </ul>
                 </div>
                  <div class="section-card col-span-1 lg:col-span-3">
                     <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 text-blue-600 mb-4 float-left mr-4">💡</div>
                     <h3 class="text-lg font-semibold text-blue-900">Justificación e Impacto Esperado</h3>
                     <p class="mt-2 text-gray-600">
-                        Esta investigación es pionera al proponer un "puente" administrativo entre la respuesta táctica inmediata (qué hacer durante la emergencia) y la visión estratégica a largo plazo (cómo sobrevive y prospera la empresa después). El modelo no solo busca cumplir una normativa, sino crear una ventaja competitiva a través de la resiliencia. El impacto esperado es dotar a las empresas, especialmente en regiones de alto riesgo como el Pacífico, de una herramienta práctica para proteger a sus empleados, activos y asegurar su permanencia en el mercado ante eventos disruptivos.
+                        Esta investigación crea un "puente" administrativo entre la respuesta táctica y la visión estratégica. El modelo busca crear una ventaja competitiva a través de la resiliencia, dotando a las empresas de una herramienta práctica para protegerse y asegurar su permanencia.
                     </p>
                 </div>
             </div>
+            
+            <div class="mt-12 flex justify-between">
+                <button data-prev="problema" class="prev-btn bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">&larr; Anterior</button>
+                <button data-next="modelo" class="next-btn bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">Siguiente &rarr;</button>
+            </div>
         </section>
 
-
-        <!-- Section: Modelo Híbrido -->
-        <section id="modelo" class="py-20">
+        <!-- Page: Modelo Híbrido -->
+        <section id="modelo" class="page">
             <div class="text-center">
                 <h2 class="text-3xl font-bold text-blue-800">El Modelo Administrativo Híbrido</h2>
                 <p class="mt-2 text-lg text-gray-600 max-w-3xl mx-auto">Integrando la estructura probada del Sistema de Comando de Incidentes (SCI) con la cultura y roles del sector privado.</p>
             </div>
-
-            <div class="mt-12 section-card">
-                <h3 class="text-xl font-semibold text-blue-700 mb-6 text-center">Organigrama Funcional para Emergencias</h3>
-                <div class="w-full overflow-x-auto p-4">
-                    <div class="flex flex-col items-center min-w-[700px]">
-                        <!-- Comandante -->
-                        <div class="organigram-box w-1/3">Comandante del Incidente</div>
-                        <div class="h-8 organigram-line"></div>
-                        
-                        <!-- Staff de Mando -->
-                        <div class="flex justify-center w-full">
-                            <div class="organigram-box w-1/4 mx-2">Oficial de Seguridad</div>
-                            <div class="organigram-box w-1/4 mx-2">Oficial de Información Pública</div>
-                            <div class="organigram-box w-1/4 mx-2">Oficial de Enlace</div>
-                        </div>
-                        <div class="h-8 organigram-line"></div>
-
-                        <!-- Línea horizontal principal -->
-                        <div class="w-4/5 h-0.5 organigram-line-h"></div>
-                        
-                        <!-- Líneas verticales a secciones -->
-                        <div class="flex w-4/5 justify-around">
+            
+            <div class="grid lg:grid-cols-2 gap-8 mt-10">
+                <div class="section-card">
+                    <h3 class="text-xl font-semibold text-blue-700 mb-6 text-center">Organigrama Funcional para Emergencias</h3>
+                    <div class="w-full overflow-x-auto p-4">
+                        <div class="flex flex-col items-center min-w-[500px]">
+                            <div class="organigram-box w-2/3">Comandante del Incidente</div>
                             <div class="h-8 organigram-line"></div>
-                            <div class="h-8 organigram-line"></div>
-                            <div class="h-8 organigram-line"></div>
-                            <div class="h-8 organigram-line"></div>
-                        </div>
-                        
-                        <!-- Secciones -->
-                        <div class="flex justify-around w-4/5 text-center">
-                            <div class="w-1/4 p-2">
-                                <div class="organigram-box">Sección de Operaciones</div>
+                            <div class="flex justify-center w-full space-x-2">
+                                <div class="organigram-box grow">Seguridad</div>
+                                <div class="organigram-box grow">Información</div>
+                                <div class="organigram-box grow">Enlace</div>
                             </div>
-                            <div class="w-1/4 p-2">
-                                <div class="organigram-box">Sección de Planificación</div>
-                            </div>
-                            <div class="w-1/4 p-2">
-                                <div class="organigram-box">Sección de Logística</div>
-                            </div>
-                            <div class="w-1/4 p-2">
-                                <div class="organigram-box">Sección de Administración/Finanzas</div>
+                            <div class="h-8 organigram-line"></div>
+                            <div class="w-full h-0.5 organigram-line-h"></div>
+                            <div class="flex w-full justify-around"><div class="h-8 organigram-line"></div><div class="h-8 organigram-line"></div><div class="h-8 organigram-line"></div><div class="h-8 organigram-line"></div></div>
+                            <div class="flex justify-around w-full text-center space-x-2">
+                                <div class="w-1/4"><div class="organigram-box">Operaciones</div></div>
+                                <div class="w-1/4"><div class="organigram-box">Planificación</div></div>
+                                <div class="w-1/4"><div class="organigram-box">Logística</div></div>
+                                <div class="w-1/4"><div class="organigram-box">Admin/Finanzas</div></div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="mt-12 section-card">
-                <h3 class="text-xl font-semibold text-blue-700 mb-4">Cuadro de Equivalencia de Cargos (SCI vs. Empresa)</h3>
-                <p class="text-gray-600 mb-6">El núcleo del modelo híbrido es la traducción de los roles estandarizados del SCI a cargos y funciones existentes en una estructura empresarial típica. Esto evita la necesidad de crear una burocracia paralela y aprovecha las capacidades y conocimientos existentes. Utilice el buscador para filtrar la tabla.</p>
-                <input type="text" id="searchInput" placeholder="Buscar por cargo o función..." class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left text-gray-500">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-100">
-                            <tr>
-                                <th scope="col" class="px-6 py-3">Cargo en el SCI</th>
-                                <th scope="col" class="px-6 py-3">Cargo Equivalente en Empresa</th>
-                                <th scope="col" class="px-6 py-3">Función Adaptada</th>
-                            </tr>
-                        </thead>
-                        <tbody id="rolesTable">
-                            <!-- Rows will be inserted by JavaScript -->
-                        </tbody>
-                    </table>
+                <div class="section-card">
+                    <h3 class="text-xl font-semibold text-blue-700 mb-4">Cuadro de Equivalencia de Cargos</h3>
+                    <p class="text-gray-600 mb-6 text-sm">El núcleo del modelo es traducir los roles del SCI a cargos existentes en la empresa. Use el buscador para filtrar.</p>
+                    <input type="text" id="searchInput" placeholder="Buscar por cargo o función..." class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500">
+                    <div class="overflow-auto max-h-80">
+                        <table class="w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">Cargo SCI</th>
+                                    <th scope="col" class="px-6 py-3">Equivalente Empresa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rolesTable">
+                                <!-- Rows will be inserted by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
+            <div class="mt-12 flex justify-between">
+                <button data-prev="propuesta" class="prev-btn bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">&larr; Anterior</button>
+                <button data-next="marco" class="next-btn bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">Siguiente &rarr;</button>
+            </div>
         </section>
 
-
-        <!-- Section: Marco Teórico -->
-        <section id="marco" class="py-20 bg-gray-50 rounded-2xl">
+        <!-- Page: Marco Teórico -->
+        <section id="marco" class="page">
             <div class="text-center">
                 <h2 class="text-3xl font-bold text-blue-800">Marco Teórico y Referentes</h2>
                 <p class="mt-2 text-lg text-gray-600 max-w-3xl mx-auto">La propuesta se fundamenta en marcos normativos y teóricos robustos y reconocidos a nivel internacional.</p>
             </div>
-            <div class="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="section-card">
-                    <h3 class="font-semibold text-blue-900">Sistema de Comando de Incidentes (SCI)</h3>
-                    <p class="mt-2 text-gray-600">Estándar de gestión de emergencias que provee una estructura organizacional flexible y escalable para coordinar la respuesta de múltiples agencias o departamentos.</p>
-                </div>
-                <div class="section-card">
-                    <h3 class="font-semibold text-blue-900">Norma ISO 22301 - Continuidad del Negocio</h3>
-                    <p class="mt-2 text-gray-600">Estándar internacional que proporciona un marco para planificar, implementar y mejorar un sistema de gestión para protegerse y recuperarse de incidentes disruptivos.</p>
-                </div>
-                <div class="section-card">
-                    <h3 class="font-semibold text-blue-900">Decreto 2157 de 2017 (Colombia)</h3>
-                    <p class="mt-2 text-gray-600">Directriz legal que establece la obligación para entidades públicas y privadas de formular un Plan de Gestión del Riesgo de Desastres, sirviendo como punto de partida normativo.</p>
-                </div>
-                <div class="section-card">
-                    <h3 class="font-semibold text-blue-900">Modelos de Gestión de Crisis</h3>
-                    <p class="mt-2 text-gray-600">Marcos conceptuales (Mitroff, Fink, Coombs) que describen el ciclo de vida de una crisis (pre-crisis, crisis, post-crisis), ayudando a estructurar la preparación y el aprendizaje.</p>
-                </div>
-                 <div class="section-card">
-                    <h3 class="font-semibold text-blue-900">Literatura sobre Resiliencia Organizacional</h3>
-                    <p class="mt-2 text-gray-600">Investigaciones que definen la resiliencia como una capacidad dinámica de anticipación, afrontamiento y adaptación, considerándola una fuente de ventaja competitiva.</p>
-                </div>
-                 <div class="section-card">
-                    <h3 class="font-semibold text-blue-900">Estudios sobre Riesgo Compuesto</h3>
-                    <p class="mt-2 text-gray-600">Análisis sobre la interacción de múltiples amenazas (naturales, sociales, tecnológicas) que magnifican el impacto, especialmente relevante para el contexto colombiano.</p>
-                </div>
+            <div class="mt-10 grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="section-card"><h3 class="font-semibold text-blue-900">Sistema de Comando de Incidentes (SCI)</h3><p class="mt-2 text-gray-600">Estándar de gestión de emergencias con una estructura organizacional flexible y escalable.</p></div>
+                <div class="section-card"><h3 class="font-semibold text-blue-900">Norma ISO 22301</h3><p class="mt-2 text-gray-600">Marco internacional para la continuidad del negocio, enfocado en protegerse y recuperarse de incidentes.</p></div>
+                <div class="section-card"><h3 class="font-semibold text-blue-900">Decreto 2157 de 2017 (Colombia)</h3><p class="mt-2 text-gray-600">Directriz legal que obliga a entidades a formular un Plan de Gestión del Riesgo de Desastres.</p></div>
+                <div class="section-card"><h3 class="font-semibold text-blue-900">Modelos de Gestión de Crisis</h3><p class="mt-2 text-gray-600">Marcos conceptuales que describen el ciclo de vida de una crisis para estructurar la preparación y el aprendizaje.</p></div>
+                <div class="section-card"><h3 class="font-semibold text-blue-900">Resiliencia Organizacional</h3><p class="mt-2 text-gray-600">Capacidad dinámica de anticipación, afrontamiento y adaptación, vista como una ventaja competitiva.</p></div>
+                <div class="section-card"><h3 class="font-semibold text-blue-900">Estudios sobre Riesgo Compuesto</h3><p class="mt-2 text-gray-600">Análisis sobre la interacción de múltiples amenazas que magnifican el impacto y sus consecuencias.</p></div>
+            </div>
+             <div class="mt-12 flex justify-between">
+                <button data-prev="modelo" class="prev-btn bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">&larr; Anterior</button>
+                <button data-next="bibliografia" class="next-btn bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">Siguiente &rarr;</button>
             </div>
         </section>
 
-        <!-- Section: Bibliografía -->
-        <section id="bibliografia" class="py-20">
+        <!-- Page: Bibliografía -->
+        <section id="bibliografia" class="page">
             <div class="text-center">
                  <h2 class="text-3xl font-bold text-blue-800">Bibliografía Sugerida</h2>
                  <p class="mt-2 text-lg text-gray-600 max-w-3xl mx-auto">Una selección de fuentes académicas y técnicas relevantes para la investigación.</p>
             </div>
-            <div class="mt-12 section-card">
-                <ul class="space-y-4 text-gray-700">
-                    <li><span class="font-semibold">Bigley, G. A., & Roberts, K. H. (2001).</span> The incident command system: High-reliability organizing for complex and volatile task environments. <span class="italic">Academy of Management Journal, 44</span>(6), 1281-1299.</li>
-                    <li><span class="font-semibold">Coombs, W. T. (2019).</span> <span class="italic">Ongoing crisis communication: Planning, managing, and responding</span> (5th ed.). Sage Publications.</li>
-                    <li><span class="font-semibold">DuBrin, A. J. (2013).</span> <span class="italic">Handbook of research on crisis leadership in organizations.</span> Edward Elgar Publishing.</li>
-                    <li><span class="font-semibold">FEMA. (2017).</span> <span class="italic">National Incident Management System (NIMS)</span>. Federal Emergency Management Agency, U.S. Department of Homeland Security.</li>
-                    <li><span class="font-semibold">Hill, H. C., & Lynn Jr, L. E. (2016).</span> <span class="italic">Public management: A three-dimensional approach.</span> CQ Press.</li>
-                    <li><span class="font-semibold">International Organization for Standardization. (2019).</span> <span class="italic">ISO 22301:2019 Security and resilience — Business continuity management systems — Requirements.</span> ISO.</li>
-                    <li><span class="font-semibold">Ministerio de Ambiente y Desarrollo Sostenible. (2017).</span> Decreto 2157 de 2017. Por medio del cual se adoptan directrices generales para la elaboración del Plan de Gestión del Riesgo de Desastres de las Entidades Públicas y Privadas.</li>
-                    <li><span class="font-semibold">Mitroff, I. I., & Anagnos, G. (2001).</span> <span class="italic">Managing crises before they happen: What every executive needs to know about crisis management.</span> AMACOM.</li>
-                    <li><span class="font-semibold">Unidad Nacional para la Gestión del Riesgo de Desastres (UNGRD). (2018).</span> <span class="italic">Guía para la elaboración de planes de gestión del riesgo de desastres de entidades públicas y privadas (PGRDEPP).</span> Presidencia de la República de Colombia.</li>
-                    <li><span class="font-semibold">Van Der Vegt, G. S., Essens, P., Wahlström, M., & George, G. (2015).</span> Managing risk and resilience. <span class="italic">Academy of Management Journal, 58</span>(4), 971-980.</li>
+            <div class="mt-10 section-card">
+                <ul class="space-y-3 text-sm text-gray-700">
+                    <li><span class="font-semibold">Bigley, G. A., & Roberts, K. H. (2001).</span> The incident command system... <span class="italic">Academy of Management Journal, 44</span>(6).</li>
+                    <li><span class="font-semibold">Coombs, W. T. (2019).</span> <span class="italic">Ongoing crisis communication...</span> (5th ed.). Sage.</li>
+                    <li><span class="font-semibold">FEMA. (2017).</span> <span class="italic">National Incident Management System (NIMS)</span>.</li>
+                    <li><span class="font-semibold">International Organization for Standardization. (2019).</span> <span class="italic">ISO 22301:2019...</span></li>
+                    <li><span class="font-semibold">Ministerio de Ambiente. (2017).</span> Decreto 2157 de 2017.</li>
+                    <li><span class="font-semibold">Mitroff, I. I., & Anagnos, G. (2001).</span> <span class="italic">Managing crises before they happen...</span> AMACOM.</li>
+                    <li><span class="font-semibold">UNGRD. (2018).</span> <span class="italic">Guía para la elaboración de planes de gestión del riesgo...</span></li>
+                    <li><span class="font-semibold">Van Der Vegt, G. S., et al. (2015).</span> Managing risk and resilience. <span class="italic">Academy of Management Journal, 58</span>(4).</li>
                 </ul>
+            </div>
+             <div class="mt-12 flex justify-between">
+                <button data-prev="marco" class="prev-btn bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition">&larr; Anterior</button>
+                <button data-next="inicio" class="next-btn bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">Volver al Inicio &circlearrowleft;</button>
             </div>
         </section>
 
     </main>
 
-    <footer class="bg-gray-800 text-white">
+    <footer class="bg-gray-800 text-white mt-12">
         <div class="container mx-auto px-6 py-8 text-center">
             <p>&copy; 2025 Olmer Geovanny Andrade Cardenas. Propuesta de Investigación Doctoral.</p>
             <p class="text-sm text-gray-400 mt-2">Universidad del Valle - Doctorado en Administración</p>
@@ -345,92 +355,99 @@
     </footer>
 
     <script>
-        // Data for the roles table, parsed from the CSV file
-        const rolesData = [
-            { sci: "Comandante del Incidente", corp: "Coordinador de la Brigada / Director Operativo", func: "Responsable del liderazgo estratégico y operativo general. Toma decisiones clave." },
-            { sci: "Oficial de Seguridad", corp: "Gerente de Riesgos y Seguridad", func: "Analiza y gestiona los riesgos operativos y laborales." },
-            { sci: "Oficial de Informaciones Públicas", corp: "Gerente de Comunicaciones", func: "Gestiona la comunicación interna y externa, imagen institucional y relaciones públicas." },
-            { sci: "Oficial de Enlace", corp: "Coordinador de Alianzas o Relaciones Externas", func: "Facilita la coordinación con socios, proveedores y stakeholders externos." },
-            { sci: "Jefe de Planificación", corp: "Jefe de Estrategia y Planificación", func: "Desarrolla estrategias, planes operativos y monitorea avances." },
-            { sci: "Asistentes de Planificación", corp: "Analistas de Estrategia / Planificación", func: "Colaboran en la elaboración de informes, análisis de datos y seguimiento de metas." },
-            { sci: "Jefe de Operaciones", corp: "Gerente de Operaciones", func: "Supervisa y asegura la ejecución eficiente de las actividades diarias." },
-            { sci: "Equipos por Divisiones/Grupos", corp: "Supervisores de Proyectos / Líderes de Área", func: "Dirigen equipos que realizan actividades operativas en áreas definidas." },
-            { sci: "Jefe de Logística", corp: "Gerente de Logística y Soporte", func: "Asegura disponibilidad de insumos, infraestructura y equipamiento necesario." },
-            { sci: "Unidad de Servicios", corp: "Departamento de Soporte Técnico/Administrativo", func: "Gestiona instalaciones, transporte, TI y otros servicios esenciales." },
-            { sci: "Jefe de Admin. y Finanzas", corp: "Gerente de Administración y Finanzas", func: "Maneja finanzas, contratos, recursos humanos y control de costos." },
-            { sci: "Unidad de Registro y Compensación", corp: "Departamento de Nómina y RRHH", func: "Controla el tiempo del personal, compensaciones y registros administrativos." }
-        ];
+        document.addEventListener('DOMContentLoaded', function() {
+            const pages = document.querySelectorAll('.page');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const mobileNav = document.getElementById('mobile-nav');
+            const nextButtons = document.querySelectorAll('.next-btn');
+            const prevButtons = document.querySelectorAll('.prev-btn');
 
-        const tableBody = document.getElementById('rolesTable');
-        const searchInput = document.getElementById('searchInput');
+            const pageData = [
+                { sci: "Comandante de Incidente", corp: "Coord. Brigada / Dir. Operativo" },
+                { sci: "Oficial de Seguridad", corp: "Gerente de Riesgos y Seguridad" },
+                { sci: "Oficial de Info. Públicas", corp: "Gerente de Comunicaciones" },
+                { sci: "Oficial de Enlace", corp: "Coord. Alianzas Externas" },
+                { sci: "Jefe de Planificación", corp: "Jefe de Estrategia y Planificación" },
+                { sci: "Asist. de Planificación", corp: "Analistas de Estrategia" },
+                { sci: "Jefe de Operaciones", corp: "Gerente de Operaciones" },
+                { sci: "Equipos por Divisiones", corp: "Supervisores de Proyectos" },
+                { sci: "Jefe de Logística", corp: "Gerente de Logística y Soporte" },
+                { sci: "Unidad de Servicios", corp: "Depto. de Soporte Técnico" },
+                { sci: "Jefe de Admin. y Finanzas", corp: "Gerente de Admin. y Finanzas" },
+                { sci: "Unidad de Registro", corp: "Depto. de Nómina y RRHH" }
+            ];
 
-        function populateTable(data) {
-            tableBody.innerHTML = '';
-            if (data.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="3" class="text-center px-6 py-4">No se encontraron resultados.</td></tr>`;
-                return;
-            }
-            data.forEach(role => {
-                const row = `
-                    <tr class="bg-white border-b hover:bg-gray-50">
-                        <td class="px-6 py-4 font-medium text-gray-900">${role.sci}</td>
-                        <td class="px-6 py-4">${role.corp}</td>
-                        <td class="px-6 py-4">${role.func}</td>
-                    </tr>
-                `;
-                tableBody.innerHTML += row;
-            });
-        }
+            const tableBody = document.getElementById('rolesTable');
+            const searchInput = document.getElementById('searchInput');
 
-        searchInput.addEventListener('keyup', () => {
-            const searchTerm = searchInput.value.toLowerCase();
-            const filteredData = rolesData.filter(role =>
-                role.sci.toLowerCase().includes(searchTerm) ||
-                role.corp.toLowerCase().includes(searchTerm) ||
-                role.func.toLowerCase().includes(searchTerm)
-            );
-            populateTable(filteredData);
-        });
-
-        // Initial table population
-        populateTable(rolesData);
-        
-        // Navigation logic
-        const sections = document.querySelectorAll('section');
-        const navLinks = document.querySelectorAll('.nav-link');
-        const mobileNav = document.getElementById('mobile-nav');
-
-        const observerOptions = {
-            root: null,
-            rootMargin: '0px',
-            threshold: 0.5
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const id = entry.target.getAttribute('id');
-                    navLinks.forEach(link => {
-                        link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
-                    });
-                    mobileNav.value = `#${id}`;
+            function populateTable(data) {
+                if (!tableBody) return;
+                tableBody.innerHTML = '';
+                if (data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="2" class="text-center px-6 py-4">No se encontraron resultados.</td></tr>`;
+                    return;
                 }
+                data.forEach(role => {
+                    const row = `
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">${role.sci}</td>
+                            <td class="px-6 py-4">${role.corp}</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('keyup', () => {
+                    const searchTerm = searchInput.value.toLowerCase();
+                    const filteredData = pageData.filter(role =>
+                        role.sci.toLowerCase().includes(searchTerm) ||
+                        role.corp.toLowerCase().includes(searchTerm)
+                    );
+                    populateTable(filteredData);
+                });
+            }
+
+            populateTable(pageData);
+
+            function showPage(pageId) {
+                pages.forEach(page => {
+                    page.classList.toggle('active', page.id === pageId);
+                });
+                navLinks.forEach(link => {
+                    link.classList.toggle('active', link.dataset.page === pageId);
+                });
+                mobileNav.value = pageId;
+                window.scrollTo(0, 0);
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showPage(link.dataset.page);
+                });
             });
-        }, observerOptions);
 
-        sections.forEach(section => {
-            observer.observe(section);
+            mobileNav.addEventListener('change', () => {
+                showPage(mobileNav.value);
+            });
+
+            nextButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    showPage(button.dataset.next);
+                });
+            });
+
+            prevButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    showPage(button.dataset.prev);
+                });
+            });
         });
-
-        mobileNav.addEventListener('change', (e) => {
-            window.location.hash = e.target.value;
-        });
-
     </script>
 </body>
 </html>
-
-
 
 
 
